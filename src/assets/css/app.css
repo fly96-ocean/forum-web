@@ -1,0 +1,29 @@
+body{
+    line-height: 1.5;
+    color: #333;
+    outline: 0;
+    font-family: PingFangSC-Light,helvetica,'Heiti SC';
+    font-size: 16px;
+    background-color: #f8f8f8;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container{
+    margin-bottom: 60px;
+}
+
+.mg-t-15{
+    margin-top: 15px !important;
+}
+
+.mg-t-0{
+    margin-top: 0px !important;
+}
+
+.tags{
+    margin-left: 5px;
+}
+
+.float-left{
+    float: left !important;
+}
