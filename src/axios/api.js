@@ -15,7 +15,7 @@ axios.interceptors.response.use(function(response) {
 });
 
 // 封装axios的get请求
-export function fetchGet(url, params) {
+export function fetchGet(url, params, contentType) {
   return new Promise((resolve, reject) => {
     axios.get(url, {
       headers: {

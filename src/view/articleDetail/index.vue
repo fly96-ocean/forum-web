@@ -3,70 +3,119 @@
     <div class="article-detail-container">
       <van-row gutter="20">
         <van-col span="24" class="title">
-          黄壳HX5与HX6的区别？
+          {{article.articleTitle}}
         </van-col>
       </van-row>
       <van-row gutter="20" class="user-info">
         <van-col span="4">
-          <img v-lazy="avatar1Url" class="avatar">
+          <img v-lazy="article.userAvatarURL" class="avatar">
         </van-col>
-        <van-col span="16">
+        <van-col span="20">
           <van-row class="username">
-            <van-col span="24">Felix</van-col>
+            <van-col span="24">{{article.userNickName}}</van-col>
           </van-row>
           <van-row class="title">
-            <van-col span="24" class="time">14小时前
-              <van-tag class="tags">维修</van-tag>
-              <van-tag class="tags">求助</van-tag>
+            <van-col span="24" class="time">{{article.articleCreateTime | dataFormat('MM-dd hh:mm')}}
+              <van-tag v-for="tag in article.articleTagsList" class="tags">{{tag}}</van-tag>
             </van-col>
           </van-row>
         </van-col>
-        <van-col span="4" class="focus">
-          <i class="iconfont icon-more"  @click="operate()"></i>
-        </van-col>
       </van-row>
       <van-row class="content">
-          HX5为天津壳牌生产，HX6为香港壳牌生产，价格出入较大，如何选择？
+        <a v-html="article.articleContent"></a>
       </van-row>
     </div>
     <van-panel title="评论">
-      <div class="content">
-        <div class="article-detail-empty-container">
-          <img v-lazy="emptyUrl" class="empty-image">
-          <div class="empty-text">暂无数据</div>
-        </div>
+      <div v-if="newComments.length<=0" class="article-detail-empty-container">
+        <img v-lazy="emptyUrl" class="empty-image">
+        <div class="empty-text">暂无数据</div>
+      </div>
+      <div v-else-if="newComments.length>0" class="article-detail-comment-container">
+        <van-row v-for="(newComment, index) in newComments" class="comment-info">
+          <van-col span="4">
+            <img v-lazy="newComment.userAvatarUrl" class="avatar">
+          </van-col>
+          <van-col span="20">
+            <van-row class="username">
+              <van-col span="20">{{newComment.userNickName}}</van-col>
+              <van-col span="4" class="more">
+                <i class="iconfont icon-more"  @click="operate(newComment, index)"></i>
+              </van-col>
+            </van-row>
+            <van-row class="comment-content">
+              <van-col span="24">{{newComment.commentContent}}</van-col>
+            </van-row>
+
+            <van-row class="bottom-tool">
+              <van-col span="8">
+                {{newComment.commentCreateTime | dataFormat('MM-dd hh:mm')}}
+              </van-col>
+              <van-col span="8" style="text-align: right;">
+                <vue-star animate="animated rotateIn" :currentStatus="goodCurrentStatus[index]">
+                  <a v-if="newComment.hasGood>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon" @click="good(newComment.oId, index)">
+                    <i slot="icon" class="fa fa-thumbs-up"></i>
+                  </a>
+                  <a v-if="newComment.hasGood==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="good(newComment.oId, index)">
+                    <i slot="icon" class="fa fa-thumbs-up"></i>
+                  </a>
+                  <span class="count" slot="count">{{newComment.commentGoodCnt}}</span>
+                </vue-star>
+              </van-col>
+              <van-col span="8" style="text-align: right;">
+                <vue-star animate="animated rotateIn">
+                  <a href="javascript:void(0)" class="vue-star" slot="icon" @click="comment(newComment.oId, index)">
+                    <i slot="icon" class="fa fa-comment"></i>
+                  </a>
+                  <span class="count" slot="count">{{newComment.commentReplyCnt}}</span>
+                </vue-star>
+              </van-col>
+            </van-row>
+
+
+          </van-col>
+        </van-row>
       </div>
     </van-panel>
-
     <van-cell-group class="article-detail-publish-comment-container">
       <van-row>
-        <van-col span="4"><img v-lazy="avatar1Url" class="avatar"></van-col>
-        <van-col span="16">
+        <van-col span="20">
           <van-field
+                  v-model="commentContent"
                   class="comment-input"
                   center
                   clearable
+                  autosize
                   placeholder="评论...">
           </van-field>
         </van-col>
         <van-col span="4">
-          <van-button size="small" class="publish-comment" type="primary" @click="publish()">发布</van-button>
+          <van-button size="small" class="publish-comment" type="danger" @click="submitComment()">发布</van-button>
         </van-col>
       </van-row>
-
     </van-cell-group>
 
-    <van-actionsheet
-            v-model="show"
-            :actions="actions"
-            cancel-text="取消"
-            @select="onSelect"
-            @cancel="onCancel"
-    />
+    <van-actionsheet v-model="reportShow" title="举报此贴">
+      <van-radio-group v-model="result">
+        <van-cell-group>
+          <van-cell
+                  v-for="(item, index) in list"
+                  clickable
+                  :key="item"
+                  :title="`${item}`"
+                  @click="result=`${item}`">
+            <van-radio :name="item" />
+          </van-cell>
+        </van-cell-group>
+      </van-radio-group>
+      <van-button type="danger" block @click="report()">举报</van-button>
+    </van-actionsheet>
   </div>
 </template>
 <script>
-  import {Tab, Tabs, Button,  Row, Col, Icon, Search, Tag, Actionsheet, Toast, Panel, Field} from 'vant';
+  import {Tab, Tabs, Button,  Row, Col, Icon, Search, Tag, Toast, Panel, Field, Actionsheet, RadioGroup, Radio, Cell, CellGroup} from 'vant';
+  import api from '../../axios/api.js';
+  import common from '../../common/common.js';
+  import VueStar from 'vue-star';
 
   export default {
     components: {
@@ -75,54 +124,114 @@
       [Icon.name]:Icon,
       [Search.name]:Search,
       [Tag.name]: Tag,
-      [Actionsheet.name]: Actionsheet,
       [Toast.name]: Toast,
       [Button.name]: Button,
       [Tab.name]:Tab,
       [Tabs.name]:Tabs,
       [Panel.name]: Panel,
-      [Field.name]: Field
-    },
-    created() {
-
-    },
-    methods: {
-      operate(){
-        this.show = true;
-
-      },
-      onSelect(item) {
-        this.show = false;
-        Toast.success('成功'+item.name);
-      },
-      onCancel(){
-
-      },
-      publish(){
-        Toast.success('发布成功');
-      }
+      [Field.name]: Field,
+      [Actionsheet.name]: Actionsheet,
+      [Radio.name]: Radio,
+      [RadioGroup.name]: RadioGroup,
+      [Cell.name]: Cell,
+      [CellGroup.name]: CellGroup,
+      [VueStar.name]: VueStar
     },
     data() {
       return {
         active: 0,
-        avatar1Url:require('../../assets/images/avatar1.jpg'),
         images1Url:require('../../assets/images/1.jpg'),
         emptyUrl:require('../../assets/images/empty.jpg'),
-        show: false,
-        actions: [
-          {
-            name: '收藏此贴'
-          },
-          {
-            name: '关注作者'
-          }
-        ]
+        article: null,
+        articleId: '',
+        commentContent: '',
+        newComments: '',
+        goodCurrentStatus:[],
+        currentComment:'',
+        currentCommentIndex: '',
+        reportShow: false,
+        list: ['垃圾广告', '色情低俗', '违法违规', '涉嫌侵权', '人身攻击', '冒充账号', '垃圾广告账号', '个人信息违规'],
+        result: ''
       };
+    },
+    created() {
+      this.articleId = this.$route.params.articleId;
+      if(this.articleId){
+        api.get(common.host + '/api/article/detail', {articleId: this.articleId}).then(res => {
+          this.article = res.msg;
+        });
+
+        api.get(common.host + '/api/comment/list', {articleId: this.articleId}).then(res => {
+          this.newComments = res.msg;
+          for(var i = 0; i<this.newComments.length; i ++){
+            this.goodCurrentStatus[i] = this.newComments[i].hasGood;
+          }
+        });
+      } else {
+        Toast.fail('非正常打开,帖子加载失败');
+      }
+    },
+
+    methods: {
+      operate(comment, index){
+        this.reportShow = true;
+        this.currentComment = comment;
+        this.currentCommentIndex = index;
+      },
+      submitComment(){
+        api.post(common.host + '/api/comment/save', {articleId: this.articleId, commentContent:this.commentContent}).then(res => {
+          Toast.success('评论成功');
+          this.commentShow = false;
+          this.newComments.push({
+            userAvatarUrl:this.article.userAvatarURL,
+            userNickName:this.article.userNickName,
+            commentContent: this.commentContent,
+            commentCreateTime: new Date(),
+            commentGoodCnt: 0,
+            commentReplyCnt: 0
+          });
+          this.commentContent='';
+        });
+      },
+      submitSubComment(commentOriginalCommentId){
+        api.post(common.host + '/api/comment/save', {articleId: this.articleId, commentContent:this.commentContent, commentOriginalCommentId: commentOriginalCommentId}).then(res => {
+          Toast.success('评论成功');
+          this.commentShow = false;
+        });
+      },
+
+      good(commentId, index){
+        if (this.newComments[index].hasGood > 0) {
+          this.newComments[index].hasGood = 0;
+          this.newComments[index].commentGoodCnt -= 1;
+          api.get(common.host + '/api/comment/cancelGood', {commentId: commentId}).then(res => {
+            console.log("取消成功");
+        })
+          ;
+        } else if (this.newComments[index].hasGood == 0) {
+          this.newComments[index].hasGood += 1;
+          this.newComments[index].commentGoodCnt += 1;
+          api.get(common.host + '/api/comment/good', {commentId: commentId}).then(res => {
+            console.log("点赞成功");
+        })
+          ;
+        }
+      },
+      report(){
+        var comment = this.currentComment;
+        api.get(common.host + '/api/comment/report', {commentId: comment.oId, reportTypes:this.result}).then(res => {
+          Toast.success('举报成功');
+          this.reportShow = false;
+          this.result = '';
+        })
+      }
     }
   };
 </script>
 <style lang="less">
   .article-detail{
+    margin-bottom: 55px;
+    position: relative;
     &-container{
        background-color: #fff;
        padding: 10px;
@@ -153,6 +262,47 @@
            color: #989898;
          }
        }
+    }
+    &-comment-container{
+      padding: 0 10px;
+      .comment-info{
+        border-top: 1px solid #fcfcfc;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        .username{
+          font-weight: bold;
+          font-size: 14px;
+          color: #494949;
+
+        }
+        .more{
+          text-align: right;
+        }
+
+        .avatar{
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          margin-right: 10px;
+        }
+
+        .comment-content{
+          font-size: 14px;
+          padding-right: 5px;
+          padding-bottom: 5px;
+        }
+
+        .bottom-tool{
+          font-size: 12px;
+          color: #989898;
+          a{
+            color: #989898;
+          }
+          .count{
+            margin-left: 5px;
+          }
+        }
+      }
     }
     &-publish-comment-container{
        position: fixed;
@@ -192,9 +342,14 @@
         text-align: center;
       }
     }
+  }
 
+  .vue-star {
+    color: #919191 !important;
+  }
 
-
+  .vue-star-active {
+    color: #F05654 !important;
   }
 </style>
 

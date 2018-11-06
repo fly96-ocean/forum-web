@@ -74,6 +74,7 @@ const routes = [
     }
   },
   {
+    path: '/articleDetail/:articleId',
     name: 'articleDetail',
     component: ArticleDetail,
     meta: {
@@ -98,6 +99,7 @@ const routes = [
     }
   },
   {
+    path: '/chooseCatalog/:articleId',
     name: 'chooseCatalog',
     component: ChooseCatalog,
     meta: {
