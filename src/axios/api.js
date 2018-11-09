@@ -3,6 +3,9 @@ axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded
 
 // 请求拦截器
 axios.interceptors.request.use(function(config) {
+  if (sessionStorage.getItem('token')) {
+    config.headers.userToken = sessionStorage.getItem('token');
+  }
   return config;
 }, function(error) {
   return Promise.reject(error);
@@ -15,12 +18,11 @@ axios.interceptors.response.use(function(response) {
 });
 
 // 封装axios的get请求
-export function fetchGet(url, params, contentType) {
+export function fetchGet(url, params) {
   return new Promise((resolve, reject) => {
     axios.get(url, {
       headers: {
         Accept: "application/json; charset=utf-8",
-        userToken: sessionStorage.getItem("token")
       },
       params: params,
     })
@@ -39,7 +41,6 @@ export function fetchPost(url, params) {
     axios.post(url, params, {
           headers: {
             Accept: "application/json; charset=utf-8",
-            userToken: sessionStorage.getItem("token")
           }
     })
         .then(response => {

@@ -4,7 +4,7 @@
         <transition :name="transitionName">
             <router-view/>
         </transition>
-        <van-tabbar v-model="active" v-if="$route.meta.footerShow">
+        <van-tabbar v-model="active" v-if="$route.meta.footerShow" class="bottom">
             <van-tabbar-item to="home">
                 <div class="tabbar-item">
                     <i class="iconfont icon-home"></i>
@@ -103,13 +103,6 @@
             };
         },
         created() {
-            var token = sessionStorage.getItem("token");
-            if(token == null || token == undefined || token == ''){
-                api.post(common.host+'/api/auth/token').then(res => {
-                    sessionStorage.setItem("token", res.token);
-                });
-            }
-
         },
         methods: {
             publish(){
@@ -166,6 +159,10 @@
             font-size: 18px;
             margin-bottom: 5px;
         }
+    }
+
+    .bottom{
+        z-index: 99999;
     }
 
 </style>

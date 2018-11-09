@@ -9,6 +9,7 @@ Vue.use(Cell);
 Vue.use(CellGroup);
 Vue.use(vantCss);
 
+const Login = r => require.ensure([], () => r(require('./view/login')), 'login');
 const User = r => require.ensure([], () => r(require('./view/user')), 'user');
 const Video = r => require.ensure([], () => r(require('./view/video')), 'video');
 const Ask = r => require.ensure([], () => r(require('./view/ask')), 'ask');
@@ -30,11 +31,19 @@ const routes = [
     path: '*',
     redirect: '/home'
   },
+  {
+    name:"login",
+    component: Login,
+    meta: {
+      title: '会员登录',
+      footerShow:false
+    }
+  },
     {
         name: 'ask',
         component: Ask,
         meta: {
-            title: '问答',
+          title: '问答',
           footerShow:true
 
         }
@@ -168,6 +177,20 @@ router.beforeEach((to, from, next) => {
   const title = to.meta && to.meta.title;
   if (title) {
     document.title = title;
+  }
+
+  if (to.path === '/login') {
+
+    next();
+
+  } else {
+    let token = sessionStorage.getItem('token');
+    sessionStorage.setItem("jumpTo", to.path);
+    if (token == null || token == '' || token == undefined) {
+      next('/login');
+    } else {
+      next();
+    }
   }
   next();
 });

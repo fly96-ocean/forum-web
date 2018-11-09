@@ -57,7 +57,18 @@ Vue.filter('dataFormat', function (value, fmt) {
   return fmt;
 });
 
-const store = new Vuex.Store({}); // 这里你可能已经有其他 module
+const store = new Vuex.Store({
+  state: {
+    token: sessionStorage.getItem('token') ? sessionStorage.getItem('token') : ''
+  },
+
+  mutations: {
+    changeLogin (state, user) {
+      state.token = user.token;
+      sessionStorage.setItem('token', user.token);
+    }
+  }
+}); // 这里你可能已经有其他 module
 store.registerModule('vantStore', {
   state: {
     bottomActive: true,
