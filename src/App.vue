@@ -162,7 +162,7 @@
     }
 
     .bottom{
-        z-index: 99999;
+        z-index: 99999 !important;
     }
 
 </style>

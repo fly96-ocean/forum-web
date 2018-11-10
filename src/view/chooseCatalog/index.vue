@@ -1,15 +1,15 @@
 <template>
     <div class="choose-catalog">
         <div class="title">将内容投递到相应频道下,让更多人看到</div>
-        <van-radio-group v-model="result">
+        <van-radio-group v-model="result" @change="change">
             <van-cell-group>
                 <van-cell
                         v-for="(item, index) in domains"
                         clickable
-                        :key="`${item.oId}`"
+                        :key="item.oId"
                         :title="`${item.domainTitle}`"
                         @click="result=`${item.oId}`">
-                    <van-radio :name="item.oId" />
+                    <van-radio :name="`${item.oId}`" />
                 </van-cell>
             </van-cell-group>
         </van-radio-group>
@@ -50,7 +50,7 @@
                 result: null,
                 domains: [],
                 articleAnonymous: false,
-                articleCommentable: true
+                articleCommentable: true,
             };
         },
         methods: {
@@ -61,7 +61,7 @@
                 api.post(common.host + '/api/article/update', {articleId: this.articleId, articleAnonymous: this.articleAnonymous, articleCommentable: this.articleCommentable, articleDomainId: this.result}).then(res => {
                     if(res.code == 0){
                         this.$router.push({name: 'home'});
-                    }else{
+                    } else {
                         Toast.fail(res.msg);
                     }
                 });

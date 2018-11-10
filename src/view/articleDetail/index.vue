@@ -1,9 +1,9 @@
 <template>
   <div class="article-detail">
-    <div class="article-detail-container">
+    <div class="article-detail-container" v-if="article">
       <van-row gutter="20">
         <van-col span="24" class="title">
-          {{article.articleTitle}}
+          <span v-text="article.articleTitle"></span>
         </van-col>
       </van-row>
       <van-row gutter="20" class="user-info">
@@ -12,10 +12,11 @@
         </van-col>
         <van-col span="20">
           <van-row class="username">
-            <van-col span="24">{{article.userNickName}}</van-col>
+            <van-col span="24"><span v-text="article.userNickName"></span></van-col>
           </van-row>
           <van-row class="title">
-            <van-col span="24" class="time">{{article.articleCreateTime | dataFormat('MM-dd hh:mm')}}
+            <van-col span="24" class="time">
+              <span>{{article.articleCreateTime | dataFormat('MM-dd hh:mm')}}</span>
               <van-tag v-for="tag in article.articleTagsList" class="tags">{{tag}}</van-tag>
             </van-col>
           </van-row>
@@ -151,6 +152,7 @@
         currentCommentIndex: '',
         reportShow: false,
         list: ['垃圾广告', '色情低俗', '违法违规', '涉嫌侵权', '人身攻击', '冒充账号', '垃圾广告账号', '个人信息违规'],
+        host:common.host,
         result: ''
       };
     },
@@ -236,6 +238,11 @@
        background-color: #fff;
        padding: 10px;
         margin-bottom:15px;
+       .content{
+         img{
+           width: 100%;
+         }
+       }
        .title{
          font-weight: bold;
          font-size: 16px;
@@ -276,6 +283,8 @@
 
         }
         .more{
+          height: 50px;
+          line-height: 50px;
           text-align: right;
         }
 
@@ -308,6 +317,7 @@
        position: fixed;
        bottom: 0px;
        width: 100%;
+       z-index: 9999 !important;
       .avatar{
         width: 50px;
         height: 50px;
@@ -328,7 +338,7 @@
       background-color: #fff;
       height: 100%;
       color: #919191;
-      position: fixed;
+      /*position: fixed;*/
       width: 100%;
        text-align: center;
       .empty-image{

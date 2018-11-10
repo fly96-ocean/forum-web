@@ -17,7 +17,12 @@
         </div>
 
         <div class="publish-article-content">
-            <van-uploader id="imageUpload" name="file" :after-read="onRead" accept="image/gif, image/jpeg" multiple v-show="imageUploadShow" />
+            <van-uploader id="imageUpload"
+                          name="file"
+                          :after-read="onRead"
+                          accept="image/gif, image/jpeg, image/png, image/jpg"
+                          multiple
+                          v-show="imageUploadShow" />
             <!-- 图片上传组件辅助-->
             <quill-editor
                     v-model="content"
@@ -27,7 +32,7 @@
                     @change="onEditorChange($event)">
             </quill-editor>
         </div>
-        <van-button class="mg-t-15" type="danger" size="large" @click="next()">下一步</van-button>
+        <van-button class="mg-t-15 next" type="danger" size="large" @click="next()">下一步</van-button>
     </div>
 </template>
 
@@ -63,6 +68,7 @@
                 value: '',
                 content: '',
                 articleTitle:'',
+                articleImages:[],
                 showModuleName: false,
                 imageUploadShow: false,
                 editorOption:{
@@ -85,7 +91,8 @@
                 secondLevelTagShow: false,
                 firstLevelTags: null,
                 secondLevelTags: null,
-                currentLevelTags: null
+                currentLevelTags: null,
+                host: common.host
             };
         },
         created() {
@@ -97,7 +104,11 @@
                 var param = new FormData(); //创建form对象
                 param.append("file", file, file.name);//通过append向form对象添加数据
                 api.post(common.host + '/api/upload/upload', param).then(res => {
-                    console.log(res.data);
+                    let quill = this.$refs.myQuillEditor.quill;
+                    let length = quill.getSelection().index;
+                    quill.insertEmbed(length, 'image', this.host+"/"+res.data);
+                    quill.setSelection(length + 1)
+                    this.articleImages.push(res.data);
                 });
 
             },
@@ -126,12 +137,14 @@
                 console.log("内容改变")
             },
 
+
             next(){
                 var data = {
                     articleTitle: this.articleTitle,
                     articleContent: this.content,
-                    articleTags: this.currentLevelTags.oId,
-                    articleType: 0
+                    tagId: this.currentLevelTags.oId,
+                    articleType: 0,
+                    articleImages: this.articleImages
                 }
                 api.post(common.host + '/api/article/save', data).then(res => {
                     if(res.code == 0){
@@ -204,6 +217,11 @@
         }
         .quill-editor{
             height: 300px;
+        }
+
+        .next{
+            position: fixed;
+            bottom: 0px;
         }
     }
 

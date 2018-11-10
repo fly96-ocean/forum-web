@@ -32,15 +32,28 @@
               <i class="iconfont icon-more"  @click="operate(article, index)"></i>
             </van-col>
           </van-row>
-          <van-row class="content">
+          <!--<van-row class="content">
             <van-col>
-              <a @click="toArticleDetail(article.oId)" v-html="article.articleContent"></a>
+              <a @click="toArticleDetail(article.oId)" v-text="$options.filters.articleBrief(article.articleContent) "></a>
             </van-col>
-          </van-row>
+          </van-row>-->
           <van-row gutter="10" class="images">
-            <van-col span="8" v-for="(image, index) in article.articleImgs" :key="index">
-              <img v-lazy="image" class="item" @click="imagePreview(article.articleImgs, index)">
+            <van-col v-if="article.articleImgs.length==1" span="24" v-for="(image, index) in article.articleImgs" :key="index">
+              <div :style="{backgroundImage: 'url('+host+'/' + image + ')'}" @click="imagePreview(article.articleImgs, index)" style="backgroundSize: cover; width: 100%; height:150px; background-position: center;">
+
+              </div>
             </van-col>
+            <van-col v-if="article.articleImgs.length==2" span="12" v-for="(image, index) in article.articleImgs" :key="index">
+              <div :style="{backgroundImage: 'url('+host+'/' + image + ')'}" @click="imagePreview(article.articleImgs, index)" style="backgroundSize: cover; width: 100%; height:150px; background-position: center;">
+
+              </div>
+            </van-col>
+            <van-col v-if="article.articleImgs.length>=3" span="8" v-for="(image, index) in article.articleImgs" :key="index">
+              <div :style="{backgroundImage: 'url('+host+'/' + image + ')'}" @click="imagePreview(article.articleImgs, index)" style="backgroundSize: cover; width: 100%; height:150px; background-position: center;">
+
+              </div>
+            </van-col>
+
           </van-row>
 
           <van-row gutter="10" class="operate" align="center">
@@ -104,14 +117,24 @@
               <i class="iconfont icon-more"  @click="operate(article, index)"></i>
             </van-col>
           </van-row>
-          <van-row class="content">
+          <!--<van-row class="content">
             <van-col>
               <a @click="toArticleDetail(article.oId)" v-html="article.articleContent"></a>
             </van-col>
-          </van-row>
+          </van-row>-->
           <van-row gutter="10" class="images">
-            <van-col span="8" v-for="(image, index) in article.articleImgs" :key="index">
-              <img v-lazy="image" class="item" @click="imagePreview(article.articleImgs, index)">
+
+            <van-col v-if="article.articleImgs.length==1" span="24" v-for="(image, index) in article.articleImgs" :key="index">
+              <div :style="{backgroundImage: 'url('+host+'/' + image + ')'}" @click="imagePreview(article.articleImgs, index)" style="backgroundSize: cover; width: 100%; height:150px; background-position: center;">
+              </div>
+            </van-col>
+            <van-col v-if="article.articleImgs.length==2" span="12" v-for="(image, index) in article.articleImgs" :key="index">
+              <div :style="{backgroundImage: 'url('+host+'/' + image + ')'}" @click="imagePreview(article.articleImgs, index)" style="backgroundSize: cover; width: 100%; height:150px; background-position: center;">
+              </div>
+            </van-col>
+            <van-col v-if="article.articleImgs.length>=3" span="8" v-for="(image, index) in article.articleImgs" :key="index">
+              <div :style="{backgroundImage: 'url('+host+'/' + image + ')'}" @click="imagePreview(article.articleImgs, index)" style="backgroundSize: cover; width: 100%; height:150px; background-position: center;">
+              </div>
             </van-col>
           </van-row>
 
@@ -219,7 +242,8 @@
         watchCurrentStatus: [],
         currentArticle : '',
         currentArticleIndex: '',
-        commentContent: ''
+        commentContent: '',
+        host: common.host
       };
     },
     created() {
@@ -227,6 +251,15 @@
       this.getDomains();
       this.getNewestArticle();
 
+    },
+    filters:{
+      articleBrief:function(value){
+        if (!value) return ''
+        value = value.toString()
+        var reTag = /<img(?:.|\s)*?>/g;
+        value = value.replace(reTag,'')
+        return value.charAt(0).toUpperCase() + value.slice(1)
+      }
     },
     methods: {
       operate(article, index){
@@ -262,7 +295,7 @@
       imagePreview(articleImgs, j){
         var imageUrls = [];
         for (var i = 0; i < articleImgs.length; i++) {
-          imageUrls.push(articleImgs[i].url);
+          imageUrls.push(this.host+"/"+articleImgs[i]);
         }
         ImagePreview({images: imageUrls, startPosition: j});
       },
