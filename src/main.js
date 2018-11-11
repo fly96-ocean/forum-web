@@ -7,6 +7,7 @@ import  VueQuillEditor from 'vue-quill-editor'
 import 'quill/dist/quill.core.css'
 import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
+import VideoPlayer from 'vue-video-player'
 
 import fontawesome from '@fortawesome/fontawesome'
 import FontAwesomeIcon from '@fortawesome/vue-fontawesome'
@@ -25,6 +26,7 @@ require('./mock.js');
 
 Vue.use(Vuex);
 Vue.use(VueQuillEditor);
+Vue.use(VideoPlayer);
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 Vue.directive('focus', {

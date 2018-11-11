@@ -1,125 +1,163 @@
 <template>
     <div class="video">
-        <van-tabs class="video-tabs">
+        <van-tabs class="video-tabs" @click="onClick">
             <van-tab title="最新">
-                <div class="video-container mg-t-0">
+                <div v-if="newArticles.length<=0"  class="video-empty-container">
+                    <img v-lazy="emptyUrl" class="empty-image">
+                    <div class="empty-text">暂无数据</div>
+                </div>
+                <div v-else-if="newArticles.length>0" v-for="(article, index) in newArticles" class="video-container">
                     <van-row gutter="20">
                         <van-col span="20" class="title">
-                            <a @click="toArticleDetail()">保护神安全带—壳牌劲霸公路英雄...</a>
+                            <a @click="toArticleDetail(article.oId)">{{article.articleTitle}}</a>
                         </van-col>
                         <van-col span="4" class="more">
-                            <i class="iconfont icon-more"  @click="operate()"></i>
+                            <i class="iconfont icon-more"  @click="operate(article, index)"></i>
                         </van-col>
                     </van-row>
-                    <van-row class="content">
+                    <van-row gutter="20">
+                        <van-col span="20" class="title">
+                            <van-tag v-for="tag in article.articleTagsList" class="tags">{{tag}}</van-tag>
+                        </van-col>
+                    </van-row>
+                    <van-row class="content" v-show="article.articleImg1URL">
                         <van-col span="24">
-                            <img v-lazy="images4Url" class="item">
+                            {{article.articleContent}}
+                        </van-col>
+                        <van-col span="24">
+                            <video @click="showVideo(host+'/'+article.articleImg1URL)" class="preVideo" controls="controls" :src="host+'/'+article.articleImg1URL"></video>
                         </van-col>
                     </van-row>
 
                     <van-row gutter="10" class="operate" align="center">
-                        <van-col span="12" class="info">
+                        <van-col span="4" class="info">
                             <van-row gutter="5">
                                 <van-col span="6">
-                                    <img v-lazy="avatar2Url" class="avatar">
-                                </van-col>
-                                <van-col span="18" class="info-tags">
-                                    <van-tag class="tag">维修</van-tag>
-                                    <van-tag class="tag">维修</van-tag>
+                                    <img v-lazy="article.userAvatarURL" class="avatar">
                                 </van-col>
                             </van-row>
                         </van-col>
-                        <van-col span="12" class="item">
-                            <van-row gutter="5">
-                                <van-col span="8"><i class="iconfont  icon-zan"></i>
-                                    <span class="count">10</span></van-col>
-                                <van-col span="8"><i class="iconfont  icon-like"></i>
-                                    <span class="count">65</span></van-col>
-                                <van-col span="8"><i class="iconfont  icon-share"></i>
-                                    <span class="count">99+</span></van-col>
+                        <van-col span="20" class="item">
+                            <van-row gutter="5" align="center">
+                                <van-col span="8">
+                                    <vue-star animate="animated rotateIn" :currentStatus="goodCurrentStatus[index]">
+                                        <a v-if="article.hasGood>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon"   @click="zan(article.oId, index)">
+                                            <i class="fa fa-thumbs-up"></i>
+                                        </a>
+
+                                        <a v-else-if="article.hasGood==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="zan(article.oId, index)">
+                                            <i class="fa fa-thumbs-up"></i>
+                                        </a>
+                                        <span class="count" slot="count">{{article.articleGoodCnt}}</span>
+                                    </vue-star>
+                                </van-col>
+
+                                <van-col span="8">
+                                    <vue-star animate="animated bounceIn">
+                                        <a href="javascript:void(0)" class="vue-star" slot="icon"   @click="quickComment(article, index)">
+                                            <i class="fa fa-comment"></i>
+                                        </a>
+                                        <span class="count" slot="count">{{article.articleCommentCount}}</span>
+                                    </vue-star>
+                                </van-col>
+
+                                <van-col span="8" class="item">
+                                    <vue-star animate="animated rotateIn" :currentStatus="watchCurrentStatus[index]">
+                                        <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon" @click="watch(article.oId, index)">
+                                            <i slot="icon" class="fa fa-eye"></i>
+                                        </a>
+                                        <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="watch(article.oId, index)">
+                                            <i slot="icon" class="fa fa-eye"></i>
+                                        </a>
+
+                                        <span class="count" slot="count">{{article.articleWatchCnt}}</span>
+                                    </vue-star>
+                                </van-col>
+
                             </van-row>
 
                         </van-col>
                     </van-row>
                 </div>
-                <div class="video-container">
+            </van-tab>
+
+            <van-tab v-for="(domain, index) in domains" :title="domain.domainTitle" :id="domain.oId">
+                <div v-if="domain.articles==null || domain.articles.length<=0" class="video-empty-container">
+                    <img v-lazy="emptyUrl" class="empty-image">
+                    <div class="empty-text">暂无数据</div>
+                </div>
+                <div v-if="domain.articles.length>0"  v-for="(article, index) in domain.articles" class="video-container">
                     <van-row gutter="20">
                         <van-col span="20" class="title">
-                            <a @click="toArticleDetail()">保护神安全带—壳牌劲霸公路英雄...</a>
+                            <a @click="toArticleDetail(article.oId)">{{article.articleTitle}}</a>
                         </van-col>
                         <van-col span="4" class="more">
-                            <i class="iconfont icon-more"  @click="operate()"></i>
+                            <i class="iconfont icon-more"  @click="operate(article, index)"></i>
                         </van-col>
                     </van-row>
-                    <van-row class="content">
+                    <van-row gutter="20">
+                        <van-col span="20" class="title">
+                            <van-tag v-for="tag in article.articleTagsList" class="tags">{{tag}}</van-tag>
+                        </van-col>
+                    </van-row>
+                    <van-row class="content" v-show="article.articleImg1URL">
                         <van-col span="24">
-                            <img v-lazy="images4Url" class="item">
+                            {{article.articleContent}}
+                        </van-col>
+                        <van-col span="24">
+                            <video @click="showVideo(host+'/'+article.articleImg1URL)" class="preVideo" controls="controls" :src="host+'/'+article.articleImg1URL"></video>
                         </van-col>
                     </van-row>
 
                     <van-row gutter="10" class="operate" align="center">
-                        <van-col span="12" class="info">
+                        <van-col span="4" class="info">
                             <van-row gutter="5">
                                 <van-col span="6">
-                                    <img v-lazy="avatar2Url" class="avatar">
-                                </van-col>
-                                <van-col span="18" class="info-tags">
-                                    <van-tag class="tag">维修</van-tag>
-                                    <van-tag class="tag">维修</van-tag>
+                                    <img v-lazy="article.userAvatarURL" class="avatar">
                                 </van-col>
                             </van-row>
                         </van-col>
-                        <van-col span="12" class="item">
-                            <van-row gutter="5">
-                                <van-col span="8"><i class="iconfont  icon-zan"></i>
-                                    <span class="count">10</span></van-col>
-                                <van-col span="8"><i class="iconfont  icon-like"></i>
-                                    <span class="count">65</span></van-col>
-                                <van-col span="8"><i class="iconfont  icon-share"></i>
-                                    <span class="count">99+</span></van-col>
+                        <van-col span="20" class="item">
+                            <van-row gutter="5" align="center">
+                                <van-col span="8">
+                                    <vue-star animate="animated rotateIn" :currentStatus="goodCurrentStatus[index]">
+                                        <a v-if="article.hasGood>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon"   @click="zan(article.oId, index)">
+                                            <i class="fa fa-thumbs-up"></i>
+                                        </a>
+
+                                        <a v-else-if="article.hasGood==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="zan(article.oId, index)">
+                                            <i class="fa fa-thumbs-up"></i>
+                                        </a>
+                                        <span class="count" slot="count">{{article.articleGoodCnt}}</span>
+                                    </vue-star>
+                                </van-col>
+
+                                <van-col span="8">
+                                    <vue-star animate="animated bounceIn">
+                                        <a href="javascript:void(0)" class="vue-star" slot="icon"   @click="quickComment(article, index)">
+                                            <i class="fa fa-comment"></i>
+                                        </a>
+                                        <span class="count" slot="count">{{article.articleCommentCount}}</span>
+                                    </vue-star>
+                                </van-col>
+
+                                <van-col span="8" class="item">
+                                    <vue-star animate="animated rotateIn" :currentStatus="watchCurrentStatus[index]">
+                                        <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon" @click="watch(article.oId, index)">
+                                            <i slot="icon" class="fa fa-eye"></i>
+                                        </a>
+                                        <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="watch(article.oId, index)">
+                                            <i slot="icon" class="fa fa-eye"></i>
+                                        </a>
+
+                                        <span class="count" slot="count">{{article.articleWatchCnt}}</span>
+                                    </vue-star>
+                                </van-col>
+
                             </van-row>
 
                         </van-col>
                     </van-row>
-                </div>
-
-            </van-tab>
-
-            <van-tab title="机油">
-                <div class="video-empty-container">
-                    <img v-lazy="emptyUrl" class="empty-image">
-                    <div class="empty-text">暂无数据</div>
-                </div>
-            </van-tab>
-            <van-tab title="维修">
-                <div class="video-empty-container">
-                    <img v-lazy="emptyUrl" class="empty-image">
-                    <div class="empty-text">暂无数据</div>
-                </div>
-            </van-tab>
-
-            <van-tab title="轮胎">
-                <div class="video-empty-container">
-                    <img v-lazy="emptyUrl" class="empty-image">
-                    <div class="empty-text">暂无数据</div>
-                </div>
-            </van-tab>
-            <van-tab title="喷漆">
-                <div class="video-empty-container">
-                    <img v-lazy="emptyUrl" class="empty-image">
-                    <div class="empty-text">暂无数据</div>
-                </div>
-            </van-tab>
-            <van-tab title="钣金">
-                <div class="video-empty-container">
-                    <img v-lazy="emptyUrl" class="empty-image">
-                    <div class="empty-text">暂无数据</div>
-                </div>
-            </van-tab>
-            <van-tab title="美容">
-                <div class="video-empty-container">
-                    <img v-lazy="emptyUrl" class="empty-image">
-                    <div class="empty-text">暂无数据</div>
                 </div>
             </van-tab>
         </van-tabs>
@@ -131,12 +169,29 @@
                 @select="onSelect"
                 @cancel="onCancel"
         />
+
+        <van-actionsheet v-model="commentShow" title="快速回复此贴">
+            <van-field
+                    v-model="commentContent"
+                    type="textarea"
+                    placeholder="请输入评论内容"
+                    rows="2"
+                    autosize
+            >
+                <van-button slot="button" size="small" type="primary" @click="submitComment">提交</van-button>
+            </van-field>
+        </van-actionsheet>
+        <van-popup v-model="popupShow">
+            <video class="originalVideo" autoplay="autoplay" controls="controls" :src="currentVideoUrl"></video>
+        </van-popup>
     </div>
 
 </template>
 <script>
-    import {Lazyload, Tab, Tabs, Row, Col, Tag, Actionsheet} from 'vant';
+    import {Lazyload, Tab, Tabs, Row, Col, Tag, Actionsheet, Field, Button, Toast, Popup} from 'vant';
     import api from '../../axios/api.js';
+    import common from '../../common/common.js';
+    import VueStar from 'vue-star'
 
     export default {
         components: {
@@ -146,58 +201,175 @@
             [Row.name]: Row,
             [Col.name]: Col,
             [Tag.name]: Tag,
-            [Actionsheet.name]: Actionsheet
+            [Actionsheet.name]: Actionsheet,
+            [Field.name]: Field,
+            [Button.name]: Button,
+            [Toast.name]: Toast,
+            [Popup.name]: Popup,
+            [VueStar.name]: VueStar
+        },
+        data() {
+            return {
+                domains: [],
+                newArticles: [],
+                articleTags: [],
+                goodStarActive: '',
+                watchStarActive: '',
+                goodCurrentStatus:[],
+                watchCurrentStatus: [],
+                currentArticle : null,
+                currentArticleIndex: '',
+                emptyUrl: require('../../assets/images/empty.jpg'),
+                show: false,
+                commentShow: false,
+                popupShow: false,
+                commentContent: '',
+                actions: [
+                    {
+                        name: '收藏此贴'
+                    }
+                ],
+                currentVideoUrl: null,
+                host:common.host,
+
+            };
         },
         created() {
-
+            this.getDomains();
+            this.getNewestArticle();
         },
         methods: {
-            operate(){
+            operate(article, index){
                 this.show = true;
-
+                this.currentArticle = article;
+                this.currentArticleIndex = index;
+                if(article.hasCollect>0) {
+                    this.actions[0].name = '取消收藏'
+                } else {
+                    this.actions[0].name = '收藏此帖'
+                }
             },
             onSelect(item) {
                 this.show = false;
-                Toast.success('成功' + item.name);
+                console.log(this.currentArticle);
+                this.collect(this.currentArticle.oId, this.currentArticleIndex);
             },
             onCancel(){
 
             },
-            imagePreview(url){
-                var urls = [
-                    url
-                ]
-                ImagePreview(urls);
+            quickComment(article, index){
+                this.commentShow = true;
+                this.currentArticle = article;
+                this.currentArticleIndex = index;
             },
-            toArticleDetail(){
-                this.$router.push({name: 'articleDetail'});
-            }
-        },
-        data() {
-            return {
-                avatar1Url: require('../../assets/images/avatar1.jpg'),
-                avatar2Url: require('../../assets/images/avatar2.jpg'),
-                avatar3Url: require('../../assets/images/avatar3.jpg'),
-                images1Url: require('../../assets/images/1.jpg'),
-                images2Url: require('../../assets/images/2.jpg'),
-                images3Url: require('../../assets/images/3.jpg'),
-                images4Url: require('../../assets/images/4.jpg'),
-                images5Url: require('../../assets/images/5.jpg'),
-                images6Url: require('../../assets/images/6.jpg'),
-                images7Url: require('../../assets/images/7.jpg'),
-                images8Url: require('../../assets/images/8.jpg'),
-                emptyUrl: require('../../assets/images/empty.jpg'),
-                show: false,
-                actions: [
-                    {
-                        name: '收藏此贴'
-                    },
-                    {
-                        name: '关注作者'
-                    }
-                ]
+            submitComment(){
+                var articleId = this.currentArticle.oId;
+                api.post(common.host + '/api/comment/save', {articleId: articleId, commentContent:this.commentContent}).then(res => {
+                    Toast.success('评论成功');
+                this.newArticles[this.currentArticleIndex].articleCommentCount += 1;
+                this.commentShow = false;
+                this.commentContent = '';
+            });
+            },
+            imagePreview(articleImgs, j){
+                var imageUrls = [];
+                for (var i = 0; i < articleImgs.length; i++) {
+                    imageUrls.push(this.host+"/"+articleImgs[i]);
+                }
+                ImagePreview({images: imageUrls, startPosition: j});
+            },
+            showVideo(url){
+                this.popupShow = true;
+                this.currentVideoUrl = url;
+            },
+            toArticleDetail(articleId){
+                this.$router.push({
+                    path: '/articleDetail/'+articleId
+                })
+            },
+            /**
+             * 获取所有帖子分类
+             * */
+            getDomains(){
+                api.get(common.host + '/api/domain/list', {domainType: 1}).then(res => {
+                    this.domains = res.msg;
+                });
+            },
+            /**
+             * 获取最新帖子
+             */
+            getNewestArticle(){
+                api.get(common.host + '/api/article/newList', {articleType: 1}).then(res => {
+                    this.newArticles = res.msg;
+                for(var i = 0; i<this.newArticles.length; i ++){
+                    this.goodCurrentStatus[i] = this.newArticles[i].hasGood;
+                    this.watchCurrentStatus[i] = this.newArticles[i].hasWatchedArticle;
+                }
+                });
+            },
+            onClick(index, title) {
+                this.getDomainsArticle(this.domains[index-1]);
+            },
 
-            };
+            /**
+             * 分类下的帖子
+             * @param domainsId
+             */
+            getDomainsArticle(domain){
+                api.get(common.host + '/api/article/domainArticleList', {articleType: 1, domainId: domain.oId}).then(res => {
+                    domain.articles = res.msg;
+                });
+            },
+            zan(articleId, index){
+                if (this.newArticles[index].hasGood > 0) {
+                    this.newArticles[index].hasGood = 0;
+                    this.newArticles[index].articleGoodCnt -= 1;
+                    api.get(common.host + '/api/article/cancelGood', {articleId: articleId}).then(res => {
+                        console.log("取消成功");
+                });
+                } else if (this.newArticles[index].hasGood == 0) {
+                    this.newArticles[index].hasGood += 1;
+                    this.newArticles[index].articleGoodCnt += 1;
+                    api.get(common.host + '/api/article/good', {articleId: articleId}).then(res => {
+                        console.log("点赞成功");
+                })
+                    ;
+
+                }
+
+            },
+
+            watch(articleId, index){
+                if (this.newArticles[index].hasWatchedArticle > 0) {
+                    this.newArticles[index].hasWatchedArticle = 0;
+                    api.get(common.host + '/api/article/cancelWatch', {articleId: articleId}).then(res => {
+                        console.log("取消关注");
+                    this.newArticles[index].articleWatchCnt -= 1;
+                })
+                } else if (this.newArticles[index].hasWatchedArticle == 0) {
+                    this.newArticles[index].hasWatchedArticle += 1;
+                    api.get(common.host + '/api/article/watch', {articleId: articleId}).then(res => {
+                        console.log("关注成功");
+                    this.newArticles[index].articleWatchCnt += 1;
+                })
+                    ;
+                }
+
+            },
+
+            collect(articleId, index){
+                if (this.newArticles[index].hasCollect > 0) {
+                    this.newArticles[index].hasCollect = 0;
+                    api.get(common.host + '/api/article/cancelCollect', {articleId: articleId}).then(res => {
+                        Toast.success('取消收藏此帖');
+                })
+                } else if (this.newArticles[index].hasCollect == 0) {
+                    this.newArticles[index].hasCollect += 1;
+                    api.get(common.host + '/api/article/collect', {articleId: articleId}).then(res => {
+                        Toast.success('成功收藏此帖');
+                })
+                }
+            }
         }
     };
 </script>
@@ -277,7 +449,9 @@
             width: 100%;
         }
 
-
+        .originalVideo{
+            width: 100%;
+        }
         .empty-image {
             width: 30%;
             margin-top:45%;
@@ -286,6 +460,19 @@
         .empty-text {
             font-size: 12px;
         }
+
+        .vue-star {
+            color: #919191;
+        }
+
+        .vue-star-active {
+            color: #F05654;
+        }
+
+        .van-actionsheet{
+            margin-bottom: 50px !important;
+        }
+
 
     }
 

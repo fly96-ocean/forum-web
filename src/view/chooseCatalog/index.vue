@@ -47,6 +47,7 @@
             return {
                 show: false,
                 articleId: null,
+                domainType:null,
                 result: null,
                 domains: [],
                 articleAnonymous: false,
@@ -60,7 +61,16 @@
             publish(){
                 api.post(common.host + '/api/article/update', {articleId: this.articleId, articleAnonymous: this.articleAnonymous, articleCommentable: this.articleCommentable, articleDomainId: this.result}).then(res => {
                     if(res.code == 0){
-                        this.$router.push({name: 'home'});
+                        if(this.domainType == 0){
+                            this.$router.push({name: 'home'});
+                        }
+                        if(this.domainType == 1){
+                            this.$router.push({name: 'video'});
+                        }
+                        if(this.domainType == 2){
+                            this.$router.push({name: 'ask'});
+                        }
+
                     } else {
                         Toast.fail(res.msg);
                     }
@@ -69,7 +79,8 @@
         },
         created() {
             this.articleId = this.$route.params.articleId;
-            api.get(common.host + '/api/domain/list', {domainType: 0}).then(res => {
+            this.domainType = this.$route.params.domainType;
+            api.get(common.host + '/api/domain/list', {domainType: this.domainType}).then(res => {
                 this.domains = res.msg;
             });
         }

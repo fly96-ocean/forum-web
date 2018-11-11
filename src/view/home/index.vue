@@ -290,6 +290,7 @@
           Toast.success('评论成功');
           this.newArticles[this.currentArticleIndex].articleCommentCount += 1;
           this.commentShow = false;
+          this.commentContent = '';
         });
       },
       imagePreview(articleImgs, j){
@@ -323,8 +324,7 @@
             this.goodCurrentStatus[i] = this.newArticles[i].hasGood;
             this.watchCurrentStatus[i] = this.newArticles[i].hasWatchedArticle;
           }
-      })
-        ;
+        });
       },
 
       onClick(index, title) {
@@ -503,6 +503,9 @@
 
     .vue-star-active {
       color: #F05654;
+    }
+    .van-actionsheet{
+      margin-bottom: 50px !important;
     }
   }
 

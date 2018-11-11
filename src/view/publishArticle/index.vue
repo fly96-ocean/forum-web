@@ -150,7 +150,7 @@
                     if(res.code == 0){
                         var oId = res.msg.oId;
                         this.$router.push({
-                            path: '/chooseCatalog/'+oId
+                            path: '/chooseCatalog/'+oId+'/0'
                         })
                     }else{
                         Toast.success('帖子保存失败');

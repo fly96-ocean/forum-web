@@ -165,4 +165,10 @@
         z-index: 99999 !important;
     }
 
+    .app{
+        .van-actionsheet{
+            margin-bottom: 50px !important;
+        }
+    }
+
 </style>

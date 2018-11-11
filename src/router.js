@@ -108,7 +108,7 @@ const routes = [
     }
   },
   {
-    path: '/chooseCatalog/:articleId',
+    path: '/chooseCatalog/:articleId/:domainType',
     name: 'chooseCatalog',
     component: ChooseCatalog,
     meta: {
