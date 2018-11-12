@@ -44,7 +44,8 @@ const routes = [
         component: Ask,
         meta: {
           title: '问答',
-          footerShow:true
+          footerShow:true,
+          index:2
 
         }
     },
@@ -63,7 +64,8 @@ const routes = [
     component: User,
     meta: {
       title: '个人中心',
-      footerShow:true
+      footerShow:true,
+      index:3
     }
   },
   {
@@ -71,7 +73,8 @@ const routes = [
     component: Video,
     meta: {
       title: '短视频',
-      footerShow:true
+      footerShow:true,
+      index:1
     }
   },
   {

@@ -1,7 +1,7 @@
 <template>
   <div class="ask">
 
-    <van-row align="center" class="ask-classification">
+    <!--<van-row align="center" class="ask-classification">
       <van-col span="8" class="item">
         <div class="image">
           <i class="iconfont icon-jifen"></i>
@@ -27,19 +27,19 @@
         </div>
       </van-col>
     </van-row>
+    -->
 
     <div class="ask-container">
-      <van-row gutter="10" class="ask-list" >
+      <div v-if="newArticles==null || newArticles.length<=0" class="ask-empty-container">
+        <img v-lazy="emptyUrl" class="empty-image">
+        <div class="empty-text">暂无数据</div>
+      </div>
+      <van-row v-for="(ask, index) in newArticles" gutter="10" class="ask-list" >
         <van-col span="18" class="item">
           <van-row align="center">
             <van-col span="24">
-              南城五环有没有可以钓鱼的地方呀
-            </van-col>
-          </van-row>
-          <van-row align="center">
-            <van-col span="24">
-              <van-tag class="tag">标签</van-tag>
-              <van-tag class="tag">标签</van-tag>
+              <a @click="toArticleDetail(ask.oId)">{{ask.articleTitle}}</a>
+              <div @click="toArticleDetail(ask.oId)" v-html="ask.articleRewardContent"></div>
             </van-col>
           </van-row>
         </van-col>
@@ -47,7 +47,7 @@
           <van-row align="center">
             <van-col span="24">
               <div class="answer">
-                10
+                {{ask.articleCommentCount}}
               </div>
               <div class="answer">
                   回答
@@ -56,84 +56,18 @@
           </van-row>
           <van-row align="center">
             <van-col span="24" class="time">
-              七天前
+              {{ask.articleCreateTime | dataFormat('MM-dd hh:mm')}}
             </van-col>
           </van-row>
         </van-col>
       </van-row>
-
-      <van-row gutter="10" class="ask-list" >
-        <van-col span="18" class="item">
-          <van-row align="center">
-            <van-col span="24">
-              南城五环有没有可以钓鱼的地方呀
-            </van-col>
-          </van-row>
-          <van-row align="center">
-            <van-col span="24">
-              <van-tag class="tag">标签</van-tag>
-              <van-tag class="tag">标签</van-tag>
-            </van-col>
-          </van-row>
-        </van-col>
-        <van-col span="6" class="item" align="right">
-          <van-row align="center">
-            <van-col span="24">
-              <div class="answer">
-                10
-              </div>
-              <div class="answer">
-                回答
-              </div>
-            </van-col>
-          </van-row>
-          <van-row align="center">
-            <van-col span="24" class="time">
-              七天前
-            </van-col>
-          </van-row>
-        </van-col>
-      </van-row>
-
-      <van-row gutter="10" class="ask-list" >
-        <van-col span="18" class="item">
-          <van-row align="center">
-            <van-col span="24">
-              南城五环有没有可以钓鱼的地方呀
-            </van-col>
-          </van-row>
-          <van-row align="center">
-            <van-col span="24">
-              <van-tag class="tag">标签</van-tag>
-              <van-tag class="tag">标签</van-tag>
-            </van-col>
-          </van-row>
-        </van-col>
-        <van-col span="6" class="item" align="right">
-          <van-row align="center">
-            <van-col span="24">
-              <div class="answer">
-                10
-              </div>
-              <div class="answer">
-                回答
-              </div>
-            </van-col>
-          </van-row>
-          <van-row align="center">
-            <van-col span="24" class="time">
-              七天前
-            </van-col>
-          </van-row>
-        </van-col>
-      </van-row>
-
     </div>
-
   </div>
 </template>
 <script>
   import {Tabbar, TabbarItem, Row, Col, Icon, Tag} from 'vant';
+  import api from '../../axios/api.js';
+  import common from '../../common/common.js';
 
   export default {
     components: {
@@ -145,20 +79,32 @@
       [Tag.name]: Tag
     },
     created() {
-
-    },
-    methods: {
-      onClickCatRow(catRow) {
-
-      }
+      this.getNewestArticle();
     },
     data() {
       return {
         active: 0,
         catalogNewUrl: require('../../assets/images/new.png'),
         catalogHotUrl: require('../../assets/images/hot.png'),
-        catalogPendUrl: require('../../assets/images/pending.png')
+        catalogPendUrl: require('../../assets/images/pending.png'),
+        emptyUrl: require('../../assets/images/empty.jpg'),
+        newArticles:[]
       };
+    },
+    methods: {
+      /**
+       * 获取最新帖子
+       */
+      getNewestArticle(){
+        api.get(common.host + '/api/article/newList', {articleType: 2}).then(res => {
+          this.newArticles = res.msg;
+        });
+      },
+      toArticleDetail(articleId){
+        this.$router.push({
+          path: '/articleDetail/'+articleId
+        })
+      },
     }
   };
 </script>
@@ -167,7 +113,7 @@
     &-container{
       background-color: #fff;
       padding: 0px 10px;
-      margin-top: 10px;
+      /*margin-top: 10px;*/
     }
      &-classification{
         background: #fff;
@@ -199,7 +145,7 @@
 
     &-list{
        border-top: solid 1px #f8f8f8;
-       margin-top: 10px;
+       /*margin-top: 10px;*/
        padding-top:10px;
        color: #333333;
        letter-spacing: 0;

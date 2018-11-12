@@ -79,14 +79,14 @@
             </van-col>
             <van-col span="8" class="item">
               <vue-star animate="animated rotateIn" :currentStatus="watchCurrentStatus[index]">
-                <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon" @click="watch(article.oId, index)">
+                <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon">
                   <i slot="icon" class="fa fa-eye"></i>
                 </a>
-                <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="watch(article.oId, index)">
+                <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon">
                   <i slot="icon" class="fa fa-eye"></i>
                 </a>
 
-                <span class="count" slot="count">{{article.articleWatchCnt}}</span>
+                <span class="count" slot="count">{{article.articleViewCount}}</span>
               </vue-star>
             </van-col>
           </van-row>
@@ -161,14 +161,14 @@
             </van-col>
             <van-col span="8" class="item">
               <vue-star animate="animated rotateIn" :currentStatus="watchCurrentStatus[index]">
-                <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon" @click="watch(article.oId, index)">
+                <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon">
                   <i slot="icon" class="fa fa-eye"></i>
                 </a>
-                <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="watch(article.oId, index)">
+                <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon">
                   <i slot="icon" class="fa fa-eye"></i>
                 </a>
 
-                <span class="count" slot="count">{{article.articleWatchCnt}}</span>
+                <span class="count" slot="count">{{article.articleViewCount}}</span>
               </vue-star>
             </van-col>
           </van-row>
@@ -233,6 +233,9 @@
         commentShow: false,
         actions: [
           {
+            name: '关注楼主'
+          },
+          {
             name: '收藏此贴'
           }
         ],
@@ -267,14 +270,25 @@
         this.currentArticle = article;
         this.currentArticleIndex = index;
         if(article.hasCollect>0) {
-          this.actions[0].name = '取消收藏'
+          this.actions[0].name = '取消收藏此帖'
         } else {
           this.actions[0].name = '收藏此帖'
+        }
+
+        if(article.hasWatchedAuthor>0){
+          this.actions[1].name = '取消关注楼主'
+        } else {
+          this.actions[1].name = '关注楼主'
         }
       },
       onSelect(item) {
         this.show = false;
-        this.collect(this.currentArticle.oId, this.currentArticleIndex);
+        if(item.name=='关注楼主'||item.name=='取消关注楼主'){
+          this.watchAuthor(this.currentArticle.articleAuthorId, this.currentArticleIndex);
+        }
+        if(item.name=='收藏此帖'||item.name=='取消收藏此帖'){
+          this.collect(this.currentArticle.oId, this.currentArticleIndex);
+        }
       },
       onCancel(){
 
@@ -354,34 +368,30 @@
           this.newArticles[index].hasGood = 0;
           this.newArticles[index].articleGoodCnt -= 1;
           api.get(common.host + '/api/article/cancelGood', {articleId: articleId}).then(res => {
-            console.log("取消成功");
+            Toast.success('取消点赞');
         });
         } else if (this.newArticles[index].hasGood == 0) {
           this.newArticles[index].hasGood += 1;
           this.newArticles[index].articleGoodCnt += 1;
           api.get(common.host + '/api/article/good', {articleId: articleId}).then(res => {
-            console.log("点赞成功");
-        })
-          ;
+            Toast.success('成功点赞');
+          });
 
         }
 
       },
 
-      watch(articleId, index){
-        if (this.newArticles[index].hasWatchedArticle > 0) {
-          this.newArticles[index].hasWatchedArticle = 0;
-          api.get(common.host + '/api/article/cancelWatch', {articleId: articleId}).then(res => {
-            console.log("取消关注");
-            this.newArticles[index].articleWatchCnt -= 1;
-        })
-        } else if (this.newArticles[index].hasWatchedArticle == 0) {
-          this.newArticles[index].hasWatchedArticle += 1;
-          api.get(common.host + '/api/article/watch', {articleId: articleId}).then(res => {
-            console.log("关注成功");
-            this.newArticles[index].articleWatchCnt += 1;
-        })
-          ;
+      watchAuthor(articleAuthorId, index){
+        if (this.newArticles[index].hasWatchedAuthor > 0) {
+          this.newArticles[index].hasWatchedAuthor = 0;
+          api.get(common.host + '/api/user/cancelFollow', {userId: articleAuthorId}).then(res => {
+            Toast.success('取消关注');
+          });
+        } else if (this.newArticles[index].hasWatchedAuthor == 0) {
+          this.newArticles[index].hasWatchedAuthor += 1;
+          api.get(common.host + '/api/user/follow', {userId: articleAuthorId}).then(res => {
+            Toast.success('成功关注');
+          });
         }
 
       },
@@ -390,12 +400,12 @@
         if (this.newArticles[index].hasCollect > 0) {
           this.newArticles[index].hasCollect = 0;
           api.get(common.host + '/api/article/cancelCollect', {articleId: articleId}).then(res => {
-            Toast.success('取消收藏此帖');
+            Toast.success('成功取消');
           })
         } else if (this.newArticles[index].hasCollect == 0) {
           this.newArticles[index].hasCollect += 1;
           api.get(common.host + '/api/article/collect', {articleId: articleId}).then(res => {
-            Toast.success('成功收藏此帖');
+            Toast.success('成功收藏');
           })
         }
       }

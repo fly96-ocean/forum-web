@@ -6,7 +6,7 @@
           <span v-text="article.articleTitle"></span>
         </van-col>
       </van-row>
-      <van-row gutter="20" class="user-info">
+      <van-row gutter="20" class="article-detail-user-info">
         <van-col span="4">
           <img v-lazy="article.userAvatarURL" class="avatar">
         </van-col>
@@ -180,6 +180,14 @@
         this.currentComment = comment;
         this.currentCommentIndex = index;
       },
+      updateViewCount(){
+        api.get(common.host + '/api/article/updateViewCount', {articleId: this.articleId}).then(res => {
+          this.newComments = res.msg;
+            for(var i = 0; i<this.newComments.length; i ++){
+              this.goodCurrentStatus[i] = this.newComments[i].hasGood;
+            }
+        });
+      },
       submitComment(){
         api.post(common.host + '/api/comment/save', {articleId: this.articleId, commentContent:this.commentContent}).then(res => {
           Toast.success('评论成功');
@@ -250,25 +258,26 @@
          height: 25px;
        }
 
-       .user-info{
-         .username{
-           font-weight: bold;
-           font-size: 16px;
-           color: #494949;
-         }
 
-         .avatar{
-           width: 50px;
-           height: 50px;
-           border-radius: 50%;
-           margin-right: 10px;
-         }
+    }
+    &-user-info{
+      .username{
+        font-weight: bold;
+        font-size: 16px;
+        color: #494949;
+      }
 
-         .time{
-           font-size: 12px;
-           color: #989898;
-         }
-       }
+      .avatar{
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+
+      .time{
+        font-size: 12px;
+        color: #989898;
+      }
     }
     &-comment-container{
       padding: 0 10px;

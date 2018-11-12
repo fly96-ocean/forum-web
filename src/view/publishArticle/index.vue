@@ -41,7 +41,6 @@
     import { quillEditor } from 'vue-quill-editor';
     import api from '../../axios/api.js';
     import common from '../../common/common.js';
-    import axios from 'axios';
 
     const toolbarOptions = [
         ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
@@ -51,7 +50,7 @@
         [{'list': 'ordered'}, {'list': 'bullet'}],
 
         [{'color': []}, {'background': []}],          // dropdown with defaults from theme
-        ['link', 'image', 'video'],
+        ['link', 'image'],
     ]
 
     export default {

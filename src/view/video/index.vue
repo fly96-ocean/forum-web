@@ -226,6 +226,9 @@
                 commentContent: '',
                 actions: [
                     {
+                        name: '关注楼主'
+                    },
+                    {
                         name: '收藏此贴'
                     }
                 ],
@@ -248,11 +251,21 @@
                 } else {
                     this.actions[0].name = '收藏此帖'
                 }
+                if(article.hasWatchedAuthor>0){
+                    this.actions[1].name = '取消关注楼主'
+                } else {
+                    this.actions[1].name = '关注楼主'
+                }
             },
             onSelect(item) {
                 this.show = false;
                 console.log(this.currentArticle);
-                this.collect(this.currentArticle.oId, this.currentArticleIndex);
+                if(item.name=='关注楼主'||item.name=='取消关注楼主'){
+                    this.watchAuthor(this.currentArticle.articleAuthorId, this.currentArticleIndex);
+                }
+                if(item.name=='收藏此帖'||item.name=='取消收藏此帖'){
+                    this.collect(this.currentArticle.oId, this.currentArticleIndex);
+                }
             },
             onCancel(){
 
@@ -353,6 +366,21 @@
                     this.newArticles[index].articleWatchCnt += 1;
                 })
                     ;
+                }
+
+            },
+
+            watchAuthor(articleAuthorId, index){
+                if (this.newArticles[index].hasWatchedAuthor > 0) {
+                    this.newArticles[index].hasWatchedAuthor = 0;
+                    api.get(common.host + '/api/user/cancelFollow', {userId: articleAuthorId}).then(res => {
+                        Toast.success('取消关注');
+                });
+                } else if (this.newArticles[index].hasWatchedAuthor == 0) {
+                    this.newArticles[index].hasWatchedAuthor += 1;
+                    api.get(common.host + '/api/user/follow', {userId: articleAuthorId}).then(res => {
+                        Toast.success('成功关注');
+                });
                 }
 
             },

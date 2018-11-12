@@ -13,17 +13,40 @@
     </van-row>
 
     <van-row class="user-links">
-      <van-col span="8">
+      <van-col span="6">
         <div>100</div>
-        发布数
+        发布
       </van-col>
-      <van-col span="8">
+      <van-col span="6">
         <div>10</div>
-        粉丝数
+        关注
       </van-col>
-      <van-col span="8">
+      <van-col span="6">
+        <div>10</div>
+        粉丝
+      </van-col>
+      <van-col span="6">
         <div>150</div>
-        总积分
+        获赞
+      </van-col>
+    </van-row>
+
+    <van-row class="user-my-links">
+      <van-col span="6">
+        <div><img v-lazy="myCollect" /></div>
+        我的收藏
+      </van-col>
+      <van-col span="6">
+        <div><img v-lazy="myComment" /></div>
+        我的评论
+      </van-col>
+      <van-col span="6">
+        <div><img v-lazy="myGood" /></div>
+        我的点赞
+      </van-col>
+      <van-col span="6">
+        <div><img v-lazy="myHistory" /></div>
+        浏览历史
       </van-col>
     </van-row>
 
@@ -31,29 +54,12 @@
     <van-cell-group class="user-group">
       <van-cell is-link @click="toUserPublish()">
         <template slot="title">
-          <i class="iconfont icon-wofadetiezi group-icon"></i>
-          <span class="van-cell-text">我的发布</span>
+          <span class="van-cell-text">系统通知</span>
         </template>
       </van-cell>
-      <van-cell is-link @click="toUserFollow()">
-        <template slot="title">
-          <i class="iconfont icon-tiezishoucang group-icon"></i>
-          <span class="van-cell-text">我的关注</span>
-        </template>
-      </van-cell>
-      <van-cell is-link @click="toUserFans()">
-        <template slot="title">
-          <i class="iconfont icon-fensi group-icon"></i>
-          <span class="van-cell-text">我的好友</span>
-        </template>
-      </van-cell>
-    </van-cell-group>
-
-    <van-cell-group class="user-group">
       <van-cell is-link @click="toUserPoints()">
         <template slot="title">
-          <i class="iconfont icon-integral group-icon"></i>
-          <span class="van-cell-text">我的积分</span>
+          <span class="van-cell-text">用户反馈</span>
         </template>
       </van-cell>
     </van-cell-group>
@@ -77,7 +83,12 @@ export default {
     return {
       avatar1Url:require('../../assets/images/avatar1.jpg'),
       avatar2Url:require('../../assets/images/avatar2.jpg'),
-      avatar3Url:require('../../assets/images/avatar3.jpg')
+      avatar3Url:require('../../assets/images/avatar3.jpg'),
+      myCollect:require('../../assets/images/my-collect.png'),
+      myComment:require('../../assets/images/my-comment.png'),
+      myGood:require('../../assets/images/my-good.png'),
+      myHistory:require('../../assets/images/my-history.png'),
+
     };
   },
   methods: {
@@ -120,8 +131,20 @@ export default {
        background-color: #fff;
      }
 
+     &-my-links{
+        padding: 15px 0;
+        font-size: 14px;
+        text-align: center;
+        background-color: #fff;
+        margin-top: 10px;
+        img{
+          width: 25px;
+          height: 25px;
+        }
+      }
+
      &-group{
-        margin-top: 15px;
+        margin-top: 10px;
         .group-icon{
           margin-right: 10px;
         }
