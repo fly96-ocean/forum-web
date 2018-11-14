@@ -40,7 +40,7 @@
     import {CellGroup, Field, Button, Uploader, Tag, Toast} from 'vant';
     import { quillEditor } from 'vue-quill-editor';
     import api from '../../axios/api.js';
-    import common from '../../common/common.js';
+    import common from '../../common/common';
 
     const toolbarOptions = [
         ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
@@ -102,7 +102,7 @@
                 var file = document.getElementById("imageUpload").files[0];
                 var param = new FormData(); //创建form对象
                 param.append("file", file, file.name);//通过append向form对象添加数据
-                api.post(common.host + '/api/upload/upload', param).then(res => {
+                api.post('/api/upload/upload', param).then(res => {
                     let quill = this.$refs.myQuillEditor.quill;
                     let length = quill.getSelection().index;
                     quill.insertEmbed(length, 'image', this.host+"/"+res.data);
@@ -145,16 +145,15 @@
                     articleType: 0,
                     articleImages: this.articleImages
                 }
-                api.post(common.host + '/api/article/save', data).then(res => {
+                api.post('/api/article/save', data).then(res => {
                     if(res.code == 0){
                         var oId = res.msg.oId;
                         this.$router.push({
                             path: '/chooseCatalog/'+oId+'/0'
                         })
                     }else{
-                        Toast.success('帖子保存失败');
+                        Toast(res.msg);
                     }
-//
                 });
 
             },
@@ -162,8 +161,12 @@
              * 获取一级标签
              */
             loadFirstLevel(){
-                api.get(common.host + '/api/tag/list').then(res => {
-                    this.firstLevelTags = res.msg;
+                api.get('/api/tag/list').then(res => {
+                    if(res.code == 0){
+                        this.firstLevelTags = res.msg;
+                    }else{
+                        Toast(res.msg);
+                    }
                 });
             },
             /**
@@ -176,12 +179,16 @@
                     this.firstLevelTags[i].tagStyle = "";
                 }
                 this.firstLevelTags[index].tagStyle = "danger";
-                api.get(common.host + '/api/tag/list', {oId: oId}).then(res => {
-                    this.secondLevelTags = res.msg;
-                    if(this.secondLevelTags != null && this.secondLevelTags.length>0){
-                        this.secondLevelTagShow = true;
-                    } else {
-                        this.secondLevelTagShow = false;
+                api.get('/api/tag/list', {oId: oId}).then(res => {
+                    if(res.code == 0){
+                        this.secondLevelTags = res.msg;
+                        if (this.secondLevelTags != null && this.secondLevelTags.length > 0) {
+                            this.secondLevelTagShow = true;
+                        } else {
+                            this.secondLevelTagShow = false;
+                        }
+                    }else{
+                        Toast(res.msg);
                     }
                 });
             },
@@ -215,8 +222,11 @@
             background-color: #fff;
         }
         .quill-editor{
-            height: 300px;
+            min-height: 300px;
         }
+    .ql-editor{
+        min-height: 300px;
+    }
 
         .next{
             position: fixed;

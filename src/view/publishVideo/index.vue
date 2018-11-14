@@ -17,7 +17,12 @@
         </div>
 
         <van-cell-group class="mg-t-15">
-            <van-field v-model="articleContent" type="textarea" rows="5" autosize placeholder="视频描述"/>
+            <quill-editor
+                    v-model="articleContent"
+                    ref="myQuillEditor"
+                    :options="editorOption">
+            </quill-editor>
+
         </van-cell-group>
 
         <div class="mg-t-15" v-show="videoShow">
@@ -39,9 +44,10 @@
 
 <script>
     import {Row, Col, CellGroup, Field, Button, Uploader, Lazyload, Tag} from 'vant';
+    import { quillEditor } from 'vue-quill-editor';
     import api from '../../axios/api.js';
-    import common from '../../common/common.js';
     import { VideoPlayer } from 'vue-video-player';
+    import common from '../../common/common';
 
     const toolbarOptions = [
         ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
@@ -51,7 +57,7 @@
         [{'list': 'ordered'}, {'list': 'bullet'}],
 
         [{'color': []}, {'background': []}],          // dropdown with defaults from theme
-        ['link', 'video'],
+        ['link'],
     ]
 
     export default {
@@ -77,7 +83,15 @@
                 articleTitle:'',
                 videoUrl:null,
                 videoShow: false,
-                articleImages: []
+                articleImages: [],
+                editorOption:{
+                    modules:{
+                        toolbar: {
+                            container: toolbarOptions  // 工具栏
+                        }
+                    },
+                    placeholder:"请输入视频描述"
+                },
             };
         },
         created() {
@@ -88,19 +102,27 @@
                 var file = document.getElementById("videoUpload").files[0];
                 var param = new FormData(); //创建form对象
                 param.append("file", file, file.name);//通过append向form对象添加数据
-                api.post(common.host + '/api/upload/upload', param).then(res => {
-                    let url = this.host+"/"+res.data;
-                    this.videoShow = true;
-                    this.videoUrl = url;
-                    this.articleImages.push(res.data);
+                api.post('/api/upload/upload', param).then(res => {
+                    if(res.code == 0){
+                        let url = this.host + "/" + res.data;
+                        this.videoShow = true;
+                        this.videoUrl = url;
+                        this.articleImages.push(res.data);
+                    }else{
+                        Toast(res.msg);
+                    }
                 });
             },
             /**
              * 获取一级标签
              */
             loadFirstLevel(){
-                api.get(common.host + '/api/tag/list').then(res => {
-                    this.firstLevelTags = res.msg;
+                api.get('/api/tag/list').then(res => {
+                    if(res.code == 0){
+                        this.firstLevelTags = res.msg;
+                    }else{
+                        Toast(res.msg);
+                    }
                 });
             },
             /**
@@ -113,14 +135,18 @@
                     this.firstLevelTags[i].tagStyle = "";
                 }
                 this.firstLevelTags[index].tagStyle = "danger";
-                api.get(common.host + '/api/tag/list', {oId: oId}).then(res => {
-                    this.secondLevelTags = res.msg;
-                if(this.secondLevelTags != null && this.secondLevelTags.length>0){
-                    this.secondLevelTagShow = true;
-                } else {
-                    this.secondLevelTagShow = false;
-                }
-            });
+                api.get('/api/tag/list', {oId: oId}).then(res => {
+                    if(res.code == 0){
+                        this.secondLevelTags = res.msg;
+                        if(this.secondLevelTags != null && this.secondLevelTags.length>0){
+                            this.secondLevelTagShow = true;
+                        } else {
+                            this.secondLevelTagShow = false;
+                        }
+                    }else{
+                        Toast(res.msg);
+                    }
+                });
             },
             /**
              * 选中二级标签
@@ -142,14 +168,14 @@
                     articleType: 1,
                     articleImages: this.articleImages
                 }
-                api.post(common.host + '/api/article/save', data).then(res => {
+                api.post('/api/article/save', data).then(res => {
                     if(res.code == 0){
                         var oId = res.msg.oId;
                         this.$router.push({
                             path: '/chooseCatalog/'+oId+'/1'
                         })
                     }else{
-                        Toast.success('帖子保存失败');
+                        Toast(res.msg);
                     }
 //
                 });
@@ -179,6 +205,13 @@
         height: auto;
         width: 100%;
         padding-left: 10px;
+    }
+
+    .quill-editor{
+        min-height: 300px;
+    }
+    .ql-editor{
+        min-height: 300px;
     }
 
 </style>

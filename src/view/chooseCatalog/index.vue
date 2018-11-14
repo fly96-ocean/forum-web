@@ -31,7 +31,6 @@
 <script>
     import {SwitchCell, Col, Cell, CellGroup, Button, RadioGroup, Radio} from 'vant';
     import api from '../../axios/api.js';
-    import common from '../../common/common.js';
 
     export default {
         components: {
@@ -59,7 +58,7 @@
                 console.log(this.result);
             },
             publish(){
-                api.post(common.host + '/api/article/update', {articleId: this.articleId, articleAnonymous: this.articleAnonymous, articleCommentable: this.articleCommentable, articleDomainId: this.result}).then(res => {
+                api.post('/api/article/update', {articleId: this.articleId, articleAnonymous: this.articleAnonymous, articleCommentable: this.articleCommentable, articleDomainId: this.result}).then(res => {
                     if(res.code == 0){
                         if(this.domainType == 0){
                             this.$router.push({name: 'home'});
@@ -80,8 +79,12 @@
         created() {
             this.articleId = this.$route.params.articleId;
             this.domainType = this.$route.params.domainType;
-            api.get(common.host + '/api/domain/list', {domainType: this.domainType}).then(res => {
-                this.domains = res.msg;
+            api.get('/api/domain/list', {domainType: this.domainType}).then(res => {
+                if(res.code == 0){
+                    this.domains = res.msg;
+                }else{
+                    Toast(res.msg);
+                }
             });
         }
     };

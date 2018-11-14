@@ -1,5 +1,9 @@
 import axios from 'axios';
-axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+//axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+//axios.defaults.baseURL = 'http://forum.xiaohuangdou.cn/forum-api';// 配置接口地址
+axios.defaults.baseURL = 'http://localhost:8080';// 配置接口地址
+axios.defaults.withCredentials = false;
+
 
 // 请求拦截器
 axios.interceptors.request.use(function(config) {
@@ -33,7 +37,7 @@ export function fetchGet(url, params) {
         reject(error);
       });
   });
-};
+}
 
 // 封装axios的post请求
 export function fetchPost(url, params) {
@@ -50,7 +54,7 @@ export function fetchPost(url, params) {
           reject(error);
         });
   });
-};
+}
 
 
 export default {

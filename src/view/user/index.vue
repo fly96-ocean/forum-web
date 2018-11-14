@@ -52,6 +52,11 @@
 
 
     <van-cell-group class="user-group">
+      <van-cell is-link @click="toUserPoint()">
+        <template slot="title">
+          <span class="van-cell-text">我的积分</span>
+        </template>
+      </van-cell>
       <van-cell is-link @click="toUserPublish()">
         <template slot="title">
           <span class="van-cell-text">系统通知</span>

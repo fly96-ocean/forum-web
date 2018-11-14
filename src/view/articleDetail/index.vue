@@ -38,7 +38,10 @@
           </van-col>
           <van-col span="20">
             <van-row class="username">
-              <van-col span="20">{{newComment.userNickName}}</van-col>
+              <van-col span="20">
+                <p>{{newComment.userNickName}}</p>
+                <p class="time">{{newComment.commentCreateTime | dataFormat('MM-dd hh:mm')}}</p>
+              </van-col>
               <van-col span="4" class="more">
                 <i class="iconfont icon-more"  @click="operate(newComment, index)"></i>
               </van-col>
@@ -46,35 +49,36 @@
             <van-row class="comment-content">
               <van-col span="24">{{newComment.commentContent}}</van-col>
             </van-row>
-
-            <van-row class="bottom-tool">
-              <van-col span="8">
-                {{newComment.commentCreateTime | dataFormat('MM-dd hh:mm')}}
-              </van-col>
-              <van-col span="8" style="text-align: right;">
-                <vue-star animate="animated rotateIn" :currentStatus="goodCurrentStatus[index]">
-                  <a v-if="newComment.hasGood>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon" @click="good(newComment.oId, index)">
-                    <i slot="icon" class="fa fa-thumbs-up"></i>
-                  </a>
-                  <a v-if="newComment.hasGood==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="good(newComment.oId, index)">
-                    <i slot="icon" class="fa fa-thumbs-up"></i>
-                  </a>
-                  <span class="count" slot="count">{{newComment.commentGoodCnt}}</span>
-                </vue-star>
-              </van-col>
-              <van-col span="8" style="text-align: right;">
-                <vue-star animate="animated rotateIn">
-                  <a href="javascript:void(0)" class="vue-star" slot="icon" @click="comment(newComment.oId, index)">
-                    <i slot="icon" class="fa fa-comment"></i>
-                  </a>
-                  <span class="count" slot="count">{{newComment.commentReplyCnt}}</span>
-                </vue-star>
-              </van-col>
-            </van-row>
-
-
           </van-col>
+          <van-row class="bottom-tool">
+            <van-col span="8" style="text-align: center;">
+              <vue-star animate="animated rotateIn" :currentStatus="goodCurrentStatus[index]">
+                <a v-if="newComment.hasGood>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon" @click="good(newComment.oId, index)">
+                  <i class="fa fa-thumbs-up"></i>
+                </a>
+                <a v-if="newComment.hasGood==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="good(newComment.oId, index)">
+                  <i class="fa fa-thumbs-up"></i>
+                </a>
+                <span class="count" slot="count">{{newComment.commentGoodCnt}}</span>
+              </vue-star>
+            </van-col>
+            <van-col span="8" style="text-align: center;">
+              <vue-star animate="animated rotateIn">
+                <a href="javascript:void(0)" class="vue-star" slot="icon" @click="comment(newComment.oId, index)">
+                  <i slot="icon" class="fa fa-comment"></i>
+                </a>
+                <span class="count" slot="count">{{newComment.commentReplyCnt}}</span>
+              </vue-star>
+            </van-col>
+            <van-col span="8" style="text-align: center;">
+                <a href="javascript:void(0)" class="vue-star">
+                  <i class="fa fa-eye"></i>
+                </a>
+                <span class="count">{{article.articleViewCount}}</span>
+            </van-col>
+          </van-row>
         </van-row>
+
       </div>
     </van-panel>
     <van-cell-group class="article-detail-publish-comment-container">
@@ -115,7 +119,6 @@
 <script>
   import {Tab, Tabs, Button,  Row, Col, Icon, Search, Tag, Toast, Panel, Field, Actionsheet, RadioGroup, Radio, Cell, CellGroup} from 'vant';
   import api from '../../axios/api.js';
-  import common from '../../common/common.js';
   import VueStar from 'vue-star';
 
   export default {
@@ -152,25 +155,33 @@
         currentCommentIndex: '',
         reportShow: false,
         list: ['垃圾广告', '色情低俗', '违法违规', '涉嫌侵权', '人身攻击', '冒充账号', '垃圾广告账号', '个人信息违规'],
-        host:common.host,
         result: ''
       };
     },
     created() {
       this.articleId = this.$route.params.articleId;
       if(this.articleId){
-        api.get(common.host + '/api/article/detail', {articleId: this.articleId}).then(res => {
-          this.article = res.msg;
+        api.get('/api/article/detail', {articleId: this.articleId}).then(res => {
+          if(res.code == 0){
+            this.article = res.msg;
+          }else{
+            Toast(res.msg);
+          }
+
         });
 
-        api.get(common.host + '/api/comment/list', {articleId: this.articleId}).then(res => {
-          this.newComments = res.msg;
-          for(var i = 0; i<this.newComments.length; i ++){
-            this.goodCurrentStatus[i] = this.newComments[i].hasGood;
+        api.get('/api/comment/list', {articleId: this.articleId}).then(res => {
+          if(res.code == 0){
+            this.newComments = res.msg;
+            for (var i = 0; i < this.newComments.length; i++) {
+              this.goodCurrentStatus[i] = this.newComments[i].hasGood;
+            }
+          }else{
+            Toast(res.msg);
           }
         });
       } else {
-        Toast.fail('非正常打开,帖子加载失败');
+        Toast.fail('帖子加载失败');
       }
     },
 
@@ -181,7 +192,7 @@
         this.currentCommentIndex = index;
       },
       updateViewCount(){
-        api.get(common.host + '/api/article/updateViewCount', {articleId: this.articleId}).then(res => {
+        api.get('/api/article/updateViewCount', {articleId: this.articleId}).then(res => {
           this.newComments = res.msg;
             for(var i = 0; i<this.newComments.length; i ++){
               this.goodCurrentStatus[i] = this.newComments[i].hasGood;
@@ -189,24 +200,41 @@
         });
       },
       submitComment(){
-        api.post(common.host + '/api/comment/save', {articleId: this.articleId, commentContent:this.commentContent}).then(res => {
-          Toast.success('评论成功');
-          this.commentShow = false;
-          this.newComments.push({
-            userAvatarUrl:this.article.userAvatarURL,
-            userNickName:this.article.userNickName,
-            commentContent: this.commentContent,
-            commentCreateTime: new Date(),
-            commentGoodCnt: 0,
-            commentReplyCnt: 0
-          });
-          this.commentContent='';
-        });
+        if(this.commentContent){
+          if(this.commentContent.length<6){
+            Toast('内容不能少于6个字');
+          } else {
+            api.post('/api/comment/save', {articleId: this.articleId, commentContent:this.commentContent}).then(res => {
+              if(res.code == 0){
+                Toast.success('评论成功');
+                this.commentShow = false;
+                this.newComments.push({
+                  userAvatarUrl: this.article.userAvatarURL,
+                  userNickName: this.article.userNickName,
+                  commentContent: this.commentContent,
+                  commentCreateTime: new Date(),
+                  commentGoodCnt: 0,
+                  commentReplyCnt: 0
+                });
+                this.commentContent = '';
+              }else{
+                Toast(res.msg);
+              }
+            });
+          }
+        } else {
+          Toast.fail('请填写内容');
+        }
+
       },
       submitSubComment(commentOriginalCommentId){
-        api.post(common.host + '/api/comment/save', {articleId: this.articleId, commentContent:this.commentContent, commentOriginalCommentId: commentOriginalCommentId}).then(res => {
-          Toast.success('评论成功');
-          this.commentShow = false;
+        api.post('/api/comment/save', {articleId: this.articleId, commentContent:this.commentContent, commentOriginalCommentId: commentOriginalCommentId}).then(res => {
+          if(res.code == 0){
+            Toast.success('评论成功');
+            this.commentShow = false;
+          }else{
+            Toast(res.msg);
+          }
         });
       },
 
@@ -214,25 +242,37 @@
         if (this.newComments[index].hasGood > 0) {
           this.newComments[index].hasGood = 0;
           this.newComments[index].commentGoodCnt -= 1;
-          api.get(common.host + '/api/comment/cancelGood', {commentId: commentId}).then(res => {
-            console.log("取消成功");
+          api.get('/api/comment/cancelGood', {commentId: commentId}).then(res => {
+            if(res.code == 0){
+              Toast.success('点赞取消');
+            }else{
+              Toast(res.msg);
+            }
         })
           ;
         } else if (this.newComments[index].hasGood == 0) {
           this.newComments[index].hasGood += 1;
           this.newComments[index].commentGoodCnt += 1;
-          api.get(common.host + '/api/comment/good', {commentId: commentId}).then(res => {
-            console.log("点赞成功");
+          api.get('/api/comment/good', {commentId: commentId}).then(res => {
+            if(res.code == 0){
+              Toast.success('点赞成功');
+            }else{
+              Toast(res.msg);
+            }
         })
           ;
         }
       },
       report(){
         var comment = this.currentComment;
-        api.get(common.host + '/api/comment/report', {commentId: comment.oId, reportTypes:this.result}).then(res => {
-          Toast.success('举报成功');
-          this.reportShow = false;
-          this.result = '';
+        api.get('/api/comment/report', {commentId: comment.oId, reportTypes:this.result}).then(res => {
+          if(res.code == 0){
+            Toast.success('举报成功');
+            this.reportShow = false;
+            this.result = '';
+          }else{
+            Toast(res.msg);
+          }
         })
       }
     }
@@ -255,7 +295,7 @@
          font-weight: bold;
          font-size: 16px;
          color: #494949;
-         height: 25px;
+         /*height: 25px;*/
        }
 
 
@@ -289,7 +329,13 @@
           font-weight: bold;
           font-size: 14px;
           color: #494949;
-
+          p{
+            margin: 0px;
+          }
+          .time{
+            font-size: 12px;
+            color: #989898;
+          }
         }
         .more{
           height: 50px;
@@ -347,7 +393,7 @@
       background-color: #fff;
       height: 100%;
       color: #919191;
-      /*position: fixed;*/
+      position: fixed;
       width: 100%;
        text-align: center;
       .empty-image{

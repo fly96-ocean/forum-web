@@ -22,7 +22,7 @@
                     </van-row>
                     <van-row class="content" v-show="article.articleImg1URL">
                         <van-col span="24">
-                            {{article.articleContent}}
+                           <p v-text="$options.filters.articleBrief(article.articleContent) "></p>
                         </van-col>
                         <van-col span="24">
                             <video @click="showVideo(host+'/'+article.articleImg1URL)" class="preVideo" controls="controls" :src="host+'/'+article.articleImg1URL"></video>
@@ -62,16 +62,14 @@
                                 </van-col>
 
                                 <van-col span="8" class="item">
-                                    <vue-star animate="animated rotateIn" :currentStatus="watchCurrentStatus[index]">
-                                        <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon" @click="watch(article.oId, index)">
-                                            <i slot="icon" class="fa fa-eye"></i>
+                                        <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star" @click="watch(article.oId, index)">
+                                            <i class="fa fa-eye"></i>
                                         </a>
-                                        <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="watch(article.oId, index)">
-                                            <i slot="icon" class="fa fa-eye"></i>
+                                        <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" @click="watch(article.oId, index)">
+                                            <i class="fa fa-eye"></i>
                                         </a>
 
-                                        <span class="count" slot="count">{{article.articleWatchCnt}}</span>
-                                    </vue-star>
+                                        <span class="count">{{article.articleWatchCnt}}</span>
                                 </van-col>
 
                             </van-row>
@@ -102,7 +100,7 @@
                     </van-row>
                     <van-row class="content" v-show="article.articleImg1URL">
                         <van-col span="24">
-                            {{article.articleContent}}
+                            <p v-text="$options.filters.articleBrief(article.articleContent) "></p>
                         </van-col>
                         <van-col span="24">
                             <video @click="showVideo(host+'/'+article.articleImg1URL)" class="preVideo" controls="controls" :src="host+'/'+article.articleImg1URL"></video>
@@ -142,16 +140,13 @@
                                 </van-col>
 
                                 <van-col span="8" class="item">
-                                    <vue-star animate="animated rotateIn" :currentStatus="watchCurrentStatus[index]">
-                                        <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon" @click="watch(article.oId, index)">
-                                            <i slot="icon" class="fa fa-eye"></i>
+                                        <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star">
+                                            <i class="fa fa-eye"></i>
                                         </a>
-                                        <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon" @click="watch(article.oId, index)">
-                                            <i slot="icon" class="fa fa-eye"></i>
+                                        <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star">
+                                            <i class="fa fa-eye"></i>
                                         </a>
-
-                                        <span class="count" slot="count">{{article.articleWatchCnt}}</span>
-                                    </vue-star>
+                                        <span class="count">{{article.articleWatchCnt}}</span>
                                 </van-col>
 
                             </van-row>
@@ -190,8 +185,8 @@
 <script>
     import {Lazyload, Tab, Tabs, Row, Col, Tag, Actionsheet, Field, Button, Toast, Popup} from 'vant';
     import api from '../../axios/api.js';
-    import common from '../../common/common.js';
-    import VueStar from 'vue-star'
+    import VueStar from 'vue-star';
+    import common from '../../common/common';
 
     export default {
         components: {
@@ -241,6 +236,19 @@
             this.getDomains();
             this.getNewestArticle();
         },
+        filters:{
+            articleBrief:function(value){
+                if (!value) return ''
+                value = value.toString();
+                value = value.replace(/(\n)/g, "");
+                value = value.replace(/(\t)/g, "");
+                value = value.replace(/(\r)/g, "");
+                value = value.replace(/<\/?[^>]*>/g, "");
+                value = value.replace(/\s*/g, "");
+                value = value.substring(0, 67) + "...";
+                return value;
+            }
+        },
         methods: {
             operate(article, index){
                 this.show = true;
@@ -277,12 +285,27 @@
             },
             submitComment(){
                 var articleId = this.currentArticle.oId;
-                api.post(common.host + '/api/comment/save', {articleId: articleId, commentContent:this.commentContent}).then(res => {
-                    Toast.success('评论成功');
-                this.newArticles[this.currentArticleIndex].articleCommentCount += 1;
-                this.commentShow = false;
-                this.commentContent = '';
-            });
+                if(this.commentContent){
+                    if(this.commentContent.length<6){
+                        Toast('内容不能少于6个字');
+                    } else {
+                        api.post('/api/comment/save', {articleId: articleId, commentContent:this.commentContent}).then(res => {
+                            if(res.code == 0){
+                                Toast.success('评论成功');
+                                this.newArticles[this.currentArticleIndex].articleCommentCount += 1;
+                                this.commentShow = false;
+                                this.commentContent = '';
+                            } else {
+                                Toast(res.msg);
+                            }
+
+                        });
+                    }
+                } else {
+                    Toast.fail('请填写内容');
+                }
+
+
             },
             imagePreview(articleImgs, j){
                 var imageUrls = [];
@@ -304,7 +327,7 @@
              * 获取所有帖子分类
              * */
             getDomains(){
-                api.get(common.host + '/api/domain/list', {domainType: 1}).then(res => {
+                api.get('/api/domain/list', {domainType: 1}).then(res => {
                     this.domains = res.msg;
                 });
             },
@@ -312,7 +335,7 @@
              * 获取最新帖子
              */
             getNewestArticle(){
-                api.get(common.host + '/api/article/newList', {articleType: 1}).then(res => {
+                api.get('/api/article/newList', {articleType: 1}).then(res => {
                     this.newArticles = res.msg;
                 for(var i = 0; i<this.newArticles.length; i ++){
                     this.goodCurrentStatus[i] = this.newArticles[i].hasGood;
@@ -329,7 +352,7 @@
              * @param domainsId
              */
             getDomainsArticle(domain){
-                api.get(common.host + '/api/article/domainArticleList', {articleType: 1, domainId: domain.oId}).then(res => {
+                api.get('/api/article/domainArticleList', {articleType: 1, domainId: domain.oId}).then(res => {
                     domain.articles = res.msg;
                 });
             },
@@ -337,13 +360,13 @@
                 if (this.newArticles[index].hasGood > 0) {
                     this.newArticles[index].hasGood = 0;
                     this.newArticles[index].articleGoodCnt -= 1;
-                    api.get(common.host + '/api/article/cancelGood', {articleId: articleId}).then(res => {
+                    api.get('/api/article/cancelGood', {articleId: articleId}).then(res => {
                         console.log("取消成功");
                 });
                 } else if (this.newArticles[index].hasGood == 0) {
                     this.newArticles[index].hasGood += 1;
                     this.newArticles[index].articleGoodCnt += 1;
-                    api.get(common.host + '/api/article/good', {articleId: articleId}).then(res => {
+                    api.get('/api/article/good', {articleId: articleId}).then(res => {
                         console.log("点赞成功");
                 })
                     ;
@@ -355,13 +378,13 @@
             watch(articleId, index){
                 if (this.newArticles[index].hasWatchedArticle > 0) {
                     this.newArticles[index].hasWatchedArticle = 0;
-                    api.get(common.host + '/api/article/cancelWatch', {articleId: articleId}).then(res => {
+                    api.get('/api/article/cancelWatch', {articleId: articleId}).then(res => {
                         console.log("取消关注");
                     this.newArticles[index].articleWatchCnt -= 1;
                 })
                 } else if (this.newArticles[index].hasWatchedArticle == 0) {
                     this.newArticles[index].hasWatchedArticle += 1;
-                    api.get(common.host + '/api/article/watch', {articleId: articleId}).then(res => {
+                    api.get('/api/article/watch', {articleId: articleId}).then(res => {
                         console.log("关注成功");
                     this.newArticles[index].articleWatchCnt += 1;
                 })
@@ -373,12 +396,12 @@
             watchAuthor(articleAuthorId, index){
                 if (this.newArticles[index].hasWatchedAuthor > 0) {
                     this.newArticles[index].hasWatchedAuthor = 0;
-                    api.get(common.host + '/api/user/cancelFollow', {userId: articleAuthorId}).then(res => {
+                    api.get('/api/user/cancelFollow', {userId: articleAuthorId}).then(res => {
                         Toast.success('取消关注');
                 });
                 } else if (this.newArticles[index].hasWatchedAuthor == 0) {
                     this.newArticles[index].hasWatchedAuthor += 1;
-                    api.get(common.host + '/api/user/follow', {userId: articleAuthorId}).then(res => {
+                    api.get('/api/user/follow', {userId: articleAuthorId}).then(res => {
                         Toast.success('成功关注');
                 });
                 }
@@ -388,12 +411,12 @@
             collect(articleId, index){
                 if (this.newArticles[index].hasCollect > 0) {
                     this.newArticles[index].hasCollect = 0;
-                    api.get(common.host + '/api/article/cancelCollect', {articleId: articleId}).then(res => {
+                    api.get('/api/article/cancelCollect', {articleId: articleId}).then(res => {
                         Toast.success('取消收藏此帖');
                 })
                 } else if (this.newArticles[index].hasCollect == 0) {
                     this.newArticles[index].hasCollect += 1;
-                    api.get(common.host + '/api/article/collect', {articleId: articleId}).then(res => {
+                    api.get('/api/article/collect', {articleId: articleId}).then(res => {
                         Toast.success('成功收藏此帖');
                 })
                 }
@@ -430,7 +453,6 @@
             .content {
                 border-top: solid 1px #f8f8f8;
                 margin-top: 10px;
-                padding-top: 10px;
                 color: #333333;
                 letter-spacing: 0;
                 line-height: 25px;

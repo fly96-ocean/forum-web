@@ -32,11 +32,11 @@
               <i class="iconfont icon-more"  @click="operate(article, index)"></i>
             </van-col>
           </van-row>
-          <!--<van-row class="content">
+          <van-row class="content">
             <van-col>
               <a @click="toArticleDetail(article.oId)" v-text="$options.filters.articleBrief(article.articleContent) "></a>
             </van-col>
-          </van-row>-->
+          </van-row>
           <van-row gutter="10" class="images">
             <van-col v-if="article.articleImgs.length==1" span="24" v-for="(image, index) in article.articleImgs" :key="index">
               <div :style="{backgroundImage: 'url('+host+'/' + image + ')'}" @click="imagePreview(article.articleImgs, index)" style="backgroundSize: cover; width: 100%; height:150px; background-position: center;">
@@ -78,16 +78,14 @@
               </vue-star>
             </van-col>
             <van-col span="8" class="item">
-              <vue-star animate="animated rotateIn" :currentStatus="watchCurrentStatus[index]">
-                <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon">
-                  <i slot="icon" class="fa fa-eye"></i>
+                <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active">
+                  <i class="fa fa-eye"></i>
                 </a>
-                <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon">
-                  <i slot="icon" class="fa fa-eye"></i>
+                <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star">
+                  <i class="fa fa-eye"></i>
                 </a>
 
-                <span class="count" slot="count">{{article.articleViewCount}}</span>
-              </vue-star>
+                <span class="count">{{article.articleViewCount}}</span>
             </van-col>
           </van-row>
         </div>
@@ -117,11 +115,11 @@
               <i class="iconfont icon-more"  @click="operate(article, index)"></i>
             </van-col>
           </van-row>
-          <!--<van-row class="content">
+          <van-row class="content">
             <van-col>
               <a @click="toArticleDetail(article.oId)" v-html="article.articleContent"></a>
             </van-col>
-          </van-row>-->
+          </van-row>
           <van-row gutter="10" class="images">
 
             <van-col v-if="article.articleImgs.length==1" span="24" v-for="(image, index) in article.articleImgs" :key="index">
@@ -160,16 +158,13 @@
               </vue-star>
             </van-col>
             <van-col span="8" class="item">
-              <vue-star animate="animated rotateIn" :currentStatus="watchCurrentStatus[index]">
-                <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active" slot="icon">
-                  <i slot="icon" class="fa fa-eye"></i>
+                <a v-if="article.hasWatchedArticle>0" href="javascript:void(0)" class="vue-star vue-star-active">
+                  <i class="fa fa-eye"></i>
                 </a>
-                <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star" slot="icon">
-                  <i slot="icon" class="fa fa-eye"></i>
+                <a v-else-if="article.hasWatchedArticle==0" href="javascript:void(0)" class="vue-star">
+                  <i class="fa fa-eye"></i>
                 </a>
-
-                <span class="count" slot="count">{{article.articleViewCount}}</span>
-              </vue-star>
+                <span class="count">{{article.articleViewCount}}</span>
             </van-col>
           </van-row>
         </div>
@@ -201,8 +196,8 @@
 <script>
   import {Search, Swipe, SwipeItem, Lazyload, Tab, Tabs, Row, Col,Tag, ImagePreview, Actionsheet, Toast, Field, Button} from 'vant';
   import api from '../../axios/api.js';
-  import common from '../../common/common.js';
-  import VueStar from 'vue-star'
+  import VueStar from 'vue-star';
+  import common from '../../common/common';
 
   export default {
     components: {
@@ -231,6 +226,7 @@
         emptyUrl: require('../../assets/images/empty.jpg'),
         show: false,
         commentShow: false,
+        host: common.host,
         actions: [
           {
             name: '关注楼主'
@@ -246,7 +242,6 @@
         currentArticle : '',
         currentArticleIndex: '',
         commentContent: '',
-        host: common.host
       };
     },
     created() {
@@ -258,10 +253,14 @@
     filters:{
       articleBrief:function(value){
         if (!value) return ''
-        value = value.toString()
-        var reTag = /<img(?:.|\s)*?>/g;
-        value = value.replace(reTag,'')
-        return value.charAt(0).toUpperCase() + value.slice(1)
+        value = value.toString();
+        value = value.replace(/(\n)/g, "");
+        value = value.replace(/(\t)/g, "");
+        value = value.replace(/(\r)/g, "");
+        value = value.replace(/<\/?[^>]*>/g, "");
+        value = value.replace(/\s*/g, "");
+        value = value.substring(0, 67) + "...";
+        return value;
       }
     },
     methods: {
@@ -300,12 +299,24 @@
       },
       submitComment(){
         var articleId = this.currentArticle.oId;
-        api.post(common.host + '/api/comment/save', {articleId: articleId, commentContent:this.commentContent}).then(res => {
-          Toast.success('评论成功');
-          this.newArticles[this.currentArticleIndex].articleCommentCount += 1;
-          this.commentShow = false;
-          this.commentContent = '';
-        });
+        if(this.commentContent){
+          if(this.commentContent.length<6){
+            Toast('内容不能少于6个字');
+          } else {
+            api.post('/api/comment/save', {articleId: articleId, commentContent:this.commentContent}).then(res => {
+              if(res.code == 0){
+                Toast.success('评论成功');
+                this.newArticles[this.currentArticleIndex].articleCommentCount += 1;
+                this.commentShow = false;
+                this.commentContent = '';
+              }else{
+                Toast(res.msg);
+              }
+            });
+          }
+        } else {
+          Toast.fail('请填写内容');
+        }
       },
       imagePreview(articleImgs, j){
         var imageUrls = [];
@@ -323,7 +334,7 @@
        * 获取所有帖子分类
        * */
       getDomains(){
-        api.get(common.host + '/api/domain/list', {domainType: 0}).then(res => {
+        api.get('/api/domain/list', {domainType: 0}).then(res => {
           this.domains = res.msg;
         });
       },
@@ -332,7 +343,7 @@
        * 获取最新帖子
        */
       getNewestArticle(){
-        api.get(common.host + '/api/article/newList', {articleType: 0}).then(res => {
+        api.get('/api/article/newList', {articleType: 0}).then(res => {
           this.newArticles = res.msg;
           for(var i = 0; i<this.newArticles.length; i ++){
             this.goodCurrentStatus[i] = this.newArticles[i].hasGood;
@@ -350,7 +361,7 @@
        * @param domainsId
        */
       getDomainsArticle(domain){
-        api.get(common.host + '/api/article/domainArticleList', {articleType: 0, domainId: domain.oId}).then(res => {
+        api.get('/api/article/domainArticleList', {articleType: 0, domainId: domain.oId}).then(res => {
           domain.articles = res.msg;
         });
       },
@@ -359,7 +370,7 @@
        * 获取顶部广告
        */
       getTopAds(){
-        api.get(common.host + '/api/ad/list').then(res => {
+        api.get('/api/ad/list').then(res => {
           this.ads = res.msg;
         });
       },
@@ -367,14 +378,22 @@
         if (this.newArticles[index].hasGood > 0) {
           this.newArticles[index].hasGood = 0;
           this.newArticles[index].articleGoodCnt -= 1;
-          api.get(common.host + '/api/article/cancelGood', {articleId: articleId}).then(res => {
-            Toast.success('取消点赞');
-        });
+          api.get('/api/article/cancelGood', {articleId: articleId}).then(res => {
+              if(res.code == 0){
+                Toast.success('取消点赞');
+              }else{
+                Toast(res.msg);
+              }
+          });
         } else if (this.newArticles[index].hasGood == 0) {
           this.newArticles[index].hasGood += 1;
           this.newArticles[index].articleGoodCnt += 1;
-          api.get(common.host + '/api/article/good', {articleId: articleId}).then(res => {
-            Toast.success('成功点赞');
+          api.get('/api/article/good', {articleId: articleId}).then(res => {
+            if(res.code == 0){
+              Toast.success('成功点赞');
+            }else{
+              Toast(res.msg);
+            }
           });
 
         }
@@ -384,13 +403,21 @@
       watchAuthor(articleAuthorId, index){
         if (this.newArticles[index].hasWatchedAuthor > 0) {
           this.newArticles[index].hasWatchedAuthor = 0;
-          api.get(common.host + '/api/user/cancelFollow', {userId: articleAuthorId}).then(res => {
-            Toast.success('取消关注');
+          api.get('/api/user/cancelFollow', {userId: articleAuthorId}).then(res => {
+            if(res.code == 0){
+              Toast.success('取消关注');
+            }else{
+              Toast(res.msg);
+            }
           });
         } else if (this.newArticles[index].hasWatchedAuthor == 0) {
           this.newArticles[index].hasWatchedAuthor += 1;
-          api.get(common.host + '/api/user/follow', {userId: articleAuthorId}).then(res => {
-            Toast.success('成功关注');
+          api.get('/api/user/follow', {userId: articleAuthorId}).then(res => {
+            if(res.code == 0){
+              Toast.success('成功关注');
+            }else{
+              Toast(res.msg);
+            }
           });
         }
 
@@ -399,13 +426,21 @@
       collect(articleId, index){
         if (this.newArticles[index].hasCollect > 0) {
           this.newArticles[index].hasCollect = 0;
-          api.get(common.host + '/api/article/cancelCollect', {articleId: articleId}).then(res => {
-            Toast.success('成功取消');
+          api.get('/api/article/cancelCollect', {articleId: articleId}).then(res => {
+            if(res.code == 0){
+              Toast.success('成功取消');
+            }else{
+              Toast(res.msg);
+            }
           })
         } else if (this.newArticles[index].hasCollect == 0) {
           this.newArticles[index].hasCollect += 1;
-          api.get(common.host + '/api/article/collect', {articleId: articleId}).then(res => {
-            Toast.success('成功收藏');
+          api.get('/api/article/collect', {articleId: articleId}).then(res => {
+            if(res.code == 0){
+              Toast.success('成功收藏');
+            }else{
+              Toast(res.msg);
+            }
           })
         }
       }

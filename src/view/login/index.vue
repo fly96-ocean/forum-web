@@ -7,7 +7,6 @@
 <script>
   import { mapMutations } from 'vuex';
   import api from '../../axios/api.js';
-  import common from '../../common/common.js';
 
   export default {
     data () {
@@ -21,11 +20,13 @@
     methods: {
     ...mapMutations(['changeLogin']),
     login () {
-      api.post(common.host + '/api/auth/token').then(res => {
+      api.post('/api/auth/token').then(res => {
         let token = res.token;
         this.changeLogin({ token: token });
         let jumpTo = sessionStorage.getItem("jumpTo");
-        this.$router.push(jumpTo);
+        if(jumpTo){
+          this.$router.push(jumpTo);
+        }
     });
     }
   }

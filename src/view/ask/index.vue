@@ -67,7 +67,6 @@
 <script>
   import {Tabbar, TabbarItem, Row, Col, Icon, Tag} from 'vant';
   import api from '../../axios/api.js';
-  import common from '../../common/common.js';
 
   export default {
     components: {
@@ -80,6 +79,19 @@
     },
     created() {
       this.getNewestArticle();
+    },
+    filters:{
+      articleBrief:function(value){
+        if (!value) return ''
+        value = value.toString();
+        value = value.replace(/(\n)/g, "");
+        value = value.replace(/(\t)/g, "");
+        value = value.replace(/(\r)/g, "");
+        value = value.replace(/<\/?[^>]*>/g, "");
+        value = value.replace(/\s*/g, "");
+        value = value.substring(0, 67) + "...";
+        return value;
+      }
     },
     data() {
       return {
@@ -96,8 +108,12 @@
        * 获取最新帖子
        */
       getNewestArticle(){
-        api.get(common.host + '/api/article/newList', {articleType: 2}).then(res => {
-          this.newArticles = res.msg;
+        api.get('/api/article/newList', {articleType: 2}).then(res => {
+          if(res.code == 0){
+            this.newArticles = res.msg;
+          }else{
+            Toast(res.msg);
+          }
         });
       },
       toArticleDetail(articleId){
@@ -169,6 +185,25 @@
           font-size: 12px;
         }
     }
+
+  &-empty-container {
+     background-color: #fff;
+     text-align: center;
+     height: 100%;
+     color: #919191;
+     position: fixed;
+     width: 100%;
+     margin-left: -10px;
+   }
+
+  .empty-image {
+    width: 30%;
+    margin-top:45%;
+  }
+
+  .empty-text {
+    font-size: 12px;
+  }
 
   }
 
